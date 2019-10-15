@@ -1,0 +1,65 @@
+type Order {
+    client: String!
+    items: [String]
+}
+
+type Session {
+    id: ID!
+    waiter: String!
+    table: String!
+    orders: [Order]
+}
+
+type Query {
+    session(id: ID!): Session
+}
+
+type Mutation {
+    newSession(waiter: String!, table: String!): ID!
+    endSession(session: ID!): Boolean!
+    addClient(session: ID!, client: String!): Boolean!
+    addItem(session: ID!, client: String!, item: String!): Boolean!
+    setWaiter(session: ID!, waiter: String!): Boolean!
+    setTable(session: ID!, table: String!): Boolean!
+}
+
+type Subscription {
+    sessionEvent(id: ID!): Event
+}
+
+enum EventType {
+    WAITER
+    CLIENT
+    ITEM
+    TABLE
+}
+
+interface Event {
+    session: ID!
+    type: EventType!
+}
+
+type WaiterEvent implements Event{
+    session: ID!
+    type: EventType!
+    waiter: String!
+}
+
+type ClientEvent implements Event{
+    session: ID!
+    type: EventType!
+    client: String!
+}
+
+type TableEvent implements Event{
+    session: ID!
+    type: EventType!
+    table: String!
+}
+
+type ItemEvent implements Event{
+    session: ID!
+    type: EventType!
+    client: String!
+    item: String!
+}
