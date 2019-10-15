@@ -19,11 +19,16 @@ func TestSessionEvent(t *testing.T) {
 	}
 
 	in := &State{
+		Id: id,
 		Waiter: "test",
-		Orders: map[string][]string{
-			"testclient": {
-				"chicken",
-				"potato",
+		Table: "test",
+		Orders: []*Order{
+			{
+				Client: "testclient",
+				Items: []string{
+					"chicken",
+					"potato",
+				},
 			},
 		},
 	}
@@ -112,7 +117,6 @@ func (e *testEvent) Handle(s *State) error {
 		return e.err
 	}
 
-	s.Waiter = e.Waiter
-	s.Orders = e.Orders
+	*s = *e.State
 	return nil
 }

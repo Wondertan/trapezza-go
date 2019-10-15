@@ -6,11 +6,14 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
+	"io"
 	"strconv"
 	"sync"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
+	"github.com/Wondertan/trapezza-go/session"
 	"github.com/vektah/gqlparser"
 	"github.com/vektah/gqlparser/ast"
 )
@@ -35,19 +38,33 @@ type Config struct {
 type ResolverRoot interface {
 	Mutation() MutationResolver
 	Query() QueryResolver
+	Subscription() SubscriptionResolver
 }
 
 type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	ClientEvent struct {
+		Client  func(childComplexity int) int
+		Session func(childComplexity int) int
+		Type    func(childComplexity int) int
+	}
+
+	ItemEvent struct {
+		Client  func(childComplexity int) int
+		Item    func(childComplexity int) int
+		Session func(childComplexity int) int
+		Type    func(childComplexity int) int
+	}
+
 	Mutation struct {
-		AddClient  func(childComplexity int, session string, client string) int
-		AddItem    func(childComplexity int, session string, client string, item string) int
-		EndSession func(childComplexity int, session string) int
+		AddClient  func(childComplexity int, session session.ID, client string) int
+		AddItem    func(childComplexity int, session session.ID, client string, item string) int
+		EndSession func(childComplexity int, session session.ID) int
 		NewSession func(childComplexity int, waiter string, table string) int
-		SetTable   func(childComplexity int, session string, table string) int
-		SetWaiter  func(childComplexity int, session string, waiter string) int
+		SetTable   func(childComplexity int, session session.ID, table string) int
+		SetWaiter  func(childComplexity int, session session.ID, waiter string) int
 	}
 
 	Order struct {
@@ -56,27 +73,46 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Session func(childComplexity int, id string) int
+		Session func(childComplexity int, id session.ID) int
 	}
 
 	Session struct {
-		ID     func(childComplexity int) int
+		Id     func(childComplexity int) int
 		Orders func(childComplexity int) int
 		Table  func(childComplexity int) int
 		Waiter func(childComplexity int) int
 	}
+
+	Subscription struct {
+		SessionEvent func(childComplexity int, id session.ID) int
+	}
+
+	TableEvent struct {
+		Session func(childComplexity int) int
+		Table   func(childComplexity int) int
+		Type    func(childComplexity int) int
+	}
+
+	WaiterEvent struct {
+		Session func(childComplexity int) int
+		Type    func(childComplexity int) int
+		Waiter  func(childComplexity int) int
+	}
 }
 
 type MutationResolver interface {
-	NewSession(ctx context.Context, waiter string, table string) (string, error)
-	EndSession(ctx context.Context, session string) (bool, error)
-	AddClient(ctx context.Context, session string, client string) (bool, error)
-	AddItem(ctx context.Context, session string, client string, item string) (bool, error)
-	SetWaiter(ctx context.Context, session string, waiter string) (bool, error)
-	SetTable(ctx context.Context, session string, table string) (bool, error)
+	NewSession(ctx context.Context, waiter string, table string) (session.ID, error)
+	EndSession(ctx context.Context, session session.ID) (bool, error)
+	AddClient(ctx context.Context, session session.ID, client string) (bool, error)
+	AddItem(ctx context.Context, session session.ID, client string, item string) (bool, error)
+	SetWaiter(ctx context.Context, session session.ID, waiter string) (bool, error)
+	SetTable(ctx context.Context, session session.ID, table string) (bool, error)
 }
 type QueryResolver interface {
-	Session(ctx context.Context, id string) (*Session, error)
+	Session(ctx context.Context, id session.ID) (*session.State, error)
+}
+type SubscriptionResolver interface {
+	SessionEvent(ctx context.Context, id session.ID) (<-chan session.Event, error)
 }
 
 type executableSchema struct {
@@ -94,6 +130,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
+	case "ClientEvent.client":
+		if e.complexity.ClientEvent.Client == nil {
+			break
+		}
+
+		return e.complexity.ClientEvent.Client(childComplexity), true
+
+	case "ClientEvent.session":
+		if e.complexity.ClientEvent.Session == nil {
+			break
+		}
+
+		return e.complexity.ClientEvent.Session(childComplexity), true
+
+	case "ClientEvent.type":
+		if e.complexity.ClientEvent.Type == nil {
+			break
+		}
+
+		return e.complexity.ClientEvent.Type(childComplexity), true
+
+	case "ItemEvent.client":
+		if e.complexity.ItemEvent.Client == nil {
+			break
+		}
+
+		return e.complexity.ItemEvent.Client(childComplexity), true
+
+	case "ItemEvent.item":
+		if e.complexity.ItemEvent.Item == nil {
+			break
+		}
+
+		return e.complexity.ItemEvent.Item(childComplexity), true
+
+	case "ItemEvent.session":
+		if e.complexity.ItemEvent.Session == nil {
+			break
+		}
+
+		return e.complexity.ItemEvent.Session(childComplexity), true
+
+	case "ItemEvent.type":
+		if e.complexity.ItemEvent.Type == nil {
+			break
+		}
+
+		return e.complexity.ItemEvent.Type(childComplexity), true
+
 	case "Mutation.addClient":
 		if e.complexity.Mutation.AddClient == nil {
 			break
@@ -104,7 +189,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddClient(childComplexity, args["session"].(string), args["client"].(string)), true
+		return e.complexity.Mutation.AddClient(childComplexity, args["session"].(session.ID), args["client"].(string)), true
 
 	case "Mutation.addItem":
 		if e.complexity.Mutation.AddItem == nil {
@@ -116,7 +201,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddItem(childComplexity, args["session"].(string), args["client"].(string), args["item"].(string)), true
+		return e.complexity.Mutation.AddItem(childComplexity, args["session"].(session.ID), args["client"].(string), args["item"].(string)), true
 
 	case "Mutation.endSession":
 		if e.complexity.Mutation.EndSession == nil {
@@ -128,7 +213,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EndSession(childComplexity, args["session"].(string)), true
+		return e.complexity.Mutation.EndSession(childComplexity, args["session"].(session.ID)), true
 
 	case "Mutation.newSession":
 		if e.complexity.Mutation.NewSession == nil {
@@ -152,7 +237,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SetTable(childComplexity, args["session"].(string), args["table"].(string)), true
+		return e.complexity.Mutation.SetTable(childComplexity, args["session"].(session.ID), args["table"].(string)), true
 
 	case "Mutation.setWaiter":
 		if e.complexity.Mutation.SetWaiter == nil {
@@ -164,7 +249,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SetWaiter(childComplexity, args["session"].(string), args["waiter"].(string)), true
+		return e.complexity.Mutation.SetWaiter(childComplexity, args["session"].(session.ID), args["waiter"].(string)), true
 
 	case "Order.client":
 		if e.complexity.Order.Client == nil {
@@ -190,14 +275,14 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Session(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.Session(childComplexity, args["id"].(session.ID)), true
 
 	case "Session.id":
-		if e.complexity.Session.ID == nil {
+		if e.complexity.Session.Id == nil {
 			break
 		}
 
-		return e.complexity.Session.ID(childComplexity), true
+		return e.complexity.Session.Id(childComplexity), true
 
 	case "Session.orders":
 		if e.complexity.Session.Orders == nil {
@@ -219,6 +304,60 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Session.Waiter(childComplexity), true
+
+	case "Subscription.sessionEvent":
+		if e.complexity.Subscription.SessionEvent == nil {
+			break
+		}
+
+		args, err := ec.field_Subscription_sessionEvent_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Subscription.SessionEvent(childComplexity, args["id"].(session.ID)), true
+
+	case "TableEvent.session":
+		if e.complexity.TableEvent.Session == nil {
+			break
+		}
+
+		return e.complexity.TableEvent.Session(childComplexity), true
+
+	case "TableEvent.table":
+		if e.complexity.TableEvent.Table == nil {
+			break
+		}
+
+		return e.complexity.TableEvent.Table(childComplexity), true
+
+	case "TableEvent.type":
+		if e.complexity.TableEvent.Type == nil {
+			break
+		}
+
+		return e.complexity.TableEvent.Type(childComplexity), true
+
+	case "WaiterEvent.session":
+		if e.complexity.WaiterEvent.Session == nil {
+			break
+		}
+
+		return e.complexity.WaiterEvent.Session(childComplexity), true
+
+	case "WaiterEvent.type":
+		if e.complexity.WaiterEvent.Type == nil {
+			break
+		}
+
+		return e.complexity.WaiterEvent.Type(childComplexity), true
+
+	case "WaiterEvent.waiter":
+		if e.complexity.WaiterEvent.Waiter == nil {
+			break
+		}
+
+		return e.complexity.WaiterEvent.Waiter(childComplexity), true
 
 	}
 	return 0, false
@@ -259,7 +398,36 @@ func (e *executableSchema) Mutation(ctx context.Context, op *ast.OperationDefini
 }
 
 func (e *executableSchema) Subscription(ctx context.Context, op *ast.OperationDefinition) func() *graphql.Response {
-	return graphql.OneShot(graphql.ErrorResponse(ctx, "subscriptions are not supported"))
+	ec := executionContext{graphql.GetRequestContext(ctx), e}
+
+	next := ec._Subscription(ctx, op.SelectionSet)
+	if ec.Errors != nil {
+		return graphql.OneShot(&graphql.Response{Data: []byte("null"), Errors: ec.Errors})
+	}
+
+	var buf bytes.Buffer
+	return func() *graphql.Response {
+		buf := ec.RequestMiddleware(ctx, func(ctx context.Context) []byte {
+			buf.Reset()
+			data := next()
+
+			if data == nil {
+				return nil
+			}
+			data.MarshalGQL(&buf)
+			return buf.Bytes()
+		})
+
+		if buf == nil {
+			return nil
+		}
+
+		return &graphql.Response{
+			Data:       buf,
+			Errors:     ec.Errors,
+			Extensions: ec.Extensions,
+		}
+	}
 }
 
 type executionContext struct {
@@ -283,14 +451,14 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 
 var parsedSchema = gqlparser.MustLoadSchema(
 	&ast.Source{Name: "schema.graphql", Input: `type Order {
-    client: ID
-    items: [ID]
+    client: String!
+    items: [String]
 }
 
 type Session {
-    id: ID
-    waiter: ID
-    table: ID
+    id: ID!
+    waiter: String!
+    table: String!
     orders: [Order]
 }
 
@@ -299,12 +467,53 @@ type Query {
 }
 
 type Mutation {
-    newSession(waiter: ID!, table: ID!): ID!
+    newSession(waiter: String!, table: String!): ID!
     endSession(session: ID!): Boolean!
-    addClient(session: ID!, client: ID!): Boolean!
-    addItem(session: ID!, client: ID!, item: ID!): Boolean!
-    setWaiter(session: ID!, waiter: ID!): Boolean!
-    setTable(session: ID!, table: ID!): Boolean!
+    addClient(session: ID!, client: String!): Boolean!
+    addItem(session: ID!, client: String!, item: String!): Boolean!
+    setWaiter(session: ID!, waiter: String!): Boolean!
+    setTable(session: ID!, table: String!): Boolean!
+}
+
+type Subscription {
+    sessionEvent(id: ID!): Event
+}
+
+enum EventType {
+    WAITER
+    CLIENT
+    ITEM
+    TABLE
+}
+
+interface Event {
+    session: ID!
+    type: EventType!
+}
+
+type WaiterEvent implements Event{
+    session: ID!
+    type: EventType!
+    waiter: String!
+}
+
+type ClientEvent implements Event{
+    session: ID!
+    type: EventType!
+    client: String!
+}
+
+type TableEvent implements Event{
+    session: ID!
+    type: EventType!
+    table: String!
+}
+
+type ItemEvent implements Event{
+    session: ID!
+    type: EventType!
+    client: String!
+    item: String!
 }
 `},
 )
@@ -316,9 +525,9 @@ type Mutation {
 func (ec *executionContext) field_Mutation_addClient_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 session.ID
 	if tmp, ok := rawArgs["session"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -326,7 +535,7 @@ func (ec *executionContext) field_Mutation_addClient_args(ctx context.Context, r
 	args["session"] = arg0
 	var arg1 string
 	if tmp, ok := rawArgs["client"]; ok {
-		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -338,9 +547,9 @@ func (ec *executionContext) field_Mutation_addClient_args(ctx context.Context, r
 func (ec *executionContext) field_Mutation_addItem_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 session.ID
 	if tmp, ok := rawArgs["session"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -348,7 +557,7 @@ func (ec *executionContext) field_Mutation_addItem_args(ctx context.Context, raw
 	args["session"] = arg0
 	var arg1 string
 	if tmp, ok := rawArgs["client"]; ok {
-		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -356,7 +565,7 @@ func (ec *executionContext) field_Mutation_addItem_args(ctx context.Context, raw
 	args["client"] = arg1
 	var arg2 string
 	if tmp, ok := rawArgs["item"]; ok {
-		arg2, err = ec.unmarshalNID2string(ctx, tmp)
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -368,9 +577,9 @@ func (ec *executionContext) field_Mutation_addItem_args(ctx context.Context, raw
 func (ec *executionContext) field_Mutation_endSession_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 session.ID
 	if tmp, ok := rawArgs["session"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -384,7 +593,7 @@ func (ec *executionContext) field_Mutation_newSession_args(ctx context.Context, 
 	args := map[string]interface{}{}
 	var arg0 string
 	if tmp, ok := rawArgs["waiter"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -392,7 +601,7 @@ func (ec *executionContext) field_Mutation_newSession_args(ctx context.Context, 
 	args["waiter"] = arg0
 	var arg1 string
 	if tmp, ok := rawArgs["table"]; ok {
-		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -404,9 +613,9 @@ func (ec *executionContext) field_Mutation_newSession_args(ctx context.Context, 
 func (ec *executionContext) field_Mutation_setTable_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 session.ID
 	if tmp, ok := rawArgs["session"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -414,7 +623,7 @@ func (ec *executionContext) field_Mutation_setTable_args(ctx context.Context, ra
 	args["session"] = arg0
 	var arg1 string
 	if tmp, ok := rawArgs["table"]; ok {
-		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -426,9 +635,9 @@ func (ec *executionContext) field_Mutation_setTable_args(ctx context.Context, ra
 func (ec *executionContext) field_Mutation_setWaiter_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 session.ID
 	if tmp, ok := rawArgs["session"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -436,7 +645,7 @@ func (ec *executionContext) field_Mutation_setWaiter_args(ctx context.Context, r
 	args["session"] = arg0
 	var arg1 string
 	if tmp, ok := rawArgs["waiter"]; ok {
-		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -462,9 +671,23 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 func (ec *executionContext) field_Query_session_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 session.ID
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐID(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Subscription_sessionEvent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 session.ID
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -509,6 +732,265 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
+func (ec *executionContext) _ClientEvent_session(ctx context.Context, field graphql.CollectedField, obj *session.ClientEvent) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ClientEvent",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Session, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(session.ID)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ClientEvent_type(ctx context.Context, field graphql.CollectedField, obj *session.ClientEvent) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ClientEvent",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(session.EventType)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNEventType2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐEventType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ClientEvent_client(ctx context.Context, field graphql.CollectedField, obj *session.ClientEvent) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ClientEvent",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Client, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ItemEvent_session(ctx context.Context, field graphql.CollectedField, obj *session.ItemEvent) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ItemEvent",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Session, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(session.ID)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ItemEvent_type(ctx context.Context, field graphql.CollectedField, obj *session.ItemEvent) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ItemEvent",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(session.EventType)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNEventType2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐEventType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ItemEvent_client(ctx context.Context, field graphql.CollectedField, obj *session.ItemEvent) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ItemEvent",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Client, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ItemEvent_item(ctx context.Context, field graphql.CollectedField, obj *session.ItemEvent) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ItemEvent",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Item, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_newSession(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -547,10 +1029,10 @@ func (ec *executionContext) _Mutation_newSession(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(session.ID)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_endSession(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -579,7 +1061,7 @@ func (ec *executionContext) _Mutation_endSession(ctx context.Context, field grap
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EndSession(rctx, args["session"].(string))
+		return ec.resolvers.Mutation().EndSession(rctx, args["session"].(session.ID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -623,7 +1105,7 @@ func (ec *executionContext) _Mutation_addClient(ctx context.Context, field graph
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddClient(rctx, args["session"].(string), args["client"].(string))
+		return ec.resolvers.Mutation().AddClient(rctx, args["session"].(session.ID), args["client"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -667,7 +1149,7 @@ func (ec *executionContext) _Mutation_addItem(ctx context.Context, field graphql
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddItem(rctx, args["session"].(string), args["client"].(string), args["item"].(string))
+		return ec.resolvers.Mutation().AddItem(rctx, args["session"].(session.ID), args["client"].(string), args["item"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -711,7 +1193,7 @@ func (ec *executionContext) _Mutation_setWaiter(ctx context.Context, field graph
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SetWaiter(rctx, args["session"].(string), args["waiter"].(string))
+		return ec.resolvers.Mutation().SetWaiter(rctx, args["session"].(session.ID), args["waiter"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -755,7 +1237,7 @@ func (ec *executionContext) _Mutation_setTable(ctx context.Context, field graphq
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SetTable(rctx, args["session"].(string), args["table"].(string))
+		return ec.resolvers.Mutation().SetTable(rctx, args["session"].(session.ID), args["table"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -773,7 +1255,7 @@ func (ec *executionContext) _Mutation_setTable(ctx context.Context, field graphq
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Order_client(ctx context.Context, field graphql.CollectedField, obj *Order) (ret graphql.Marshaler) {
+func (ec *executionContext) _Order_client(ctx context.Context, field graphql.CollectedField, obj *session.Order) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -799,15 +1281,18 @@ func (ec *executionContext) _Order_client(ctx context.Context, field graphql.Col
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Order_items(ctx context.Context, field graphql.CollectedField, obj *Order) (ret graphql.Marshaler) {
+func (ec *executionContext) _Order_items(ctx context.Context, field graphql.CollectedField, obj *session.Order) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -835,10 +1320,10 @@ func (ec *executionContext) _Order_items(ctx context.Context, field graphql.Coll
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*string)
+	res := resTmp.([]string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOID2ᚕᚖstring(ctx, field.Selections, res)
+	return ec.marshalOString2ᚕstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_session(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -867,7 +1352,7 @@ func (ec *executionContext) _Query_session(ctx context.Context, field graphql.Co
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Session(rctx, args["id"].(string))
+		return ec.resolvers.Query().Session(rctx, args["id"].(session.ID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -876,10 +1361,10 @@ func (ec *executionContext) _Query_session(ctx context.Context, field graphql.Co
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*Session)
+	res := resTmp.(*session.State)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOSession2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋschemaᚐSession(ctx, field.Selections, res)
+	return ec.marshalOSession2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐState(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -957,7 +1442,7 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Session_id(ctx context.Context, field graphql.CollectedField, obj *Session) (ret graphql.Marshaler) {
+func (ec *executionContext) _Session_id(ctx context.Context, field graphql.CollectedField, obj *session.State) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -976,22 +1461,25 @@ func (ec *executionContext) _Session_id(ctx context.Context, field graphql.Colle
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
+		return obj.Id, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(session.ID)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNID2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐID(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Session_waiter(ctx context.Context, field graphql.CollectedField, obj *Session) (ret graphql.Marshaler) {
+func (ec *executionContext) _Session_waiter(ctx context.Context, field graphql.CollectedField, obj *session.State) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -1017,15 +1505,18 @@ func (ec *executionContext) _Session_waiter(ctx context.Context, field graphql.C
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Session_table(ctx context.Context, field graphql.CollectedField, obj *Session) (ret graphql.Marshaler) {
+func (ec *executionContext) _Session_table(ctx context.Context, field graphql.CollectedField, obj *session.State) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -1051,15 +1542,18 @@ func (ec *executionContext) _Session_table(ctx context.Context, field graphql.Co
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Session_orders(ctx context.Context, field graphql.CollectedField, obj *Session) (ret graphql.Marshaler) {
+func (ec *executionContext) _Session_orders(ctx context.Context, field graphql.CollectedField, obj *session.State) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -1087,10 +1581,282 @@ func (ec *executionContext) _Session_orders(ctx context.Context, field graphql.C
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*Order)
+	res := resTmp.([]*session.Order)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOOrder2ᚕᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋschemaᚐOrder(ctx, field.Selections, res)
+	return ec.marshalOOrder2ᚕᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐOrder(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Subscription_sessionEvent(ctx context.Context, field graphql.CollectedField) (ret func() graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = nil
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Subscription",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Subscription_sessionEvent_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Subscription().SessionEvent(rctx, args["id"].(session.ID))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	if resTmp == nil {
+		return nil
+	}
+	return func() graphql.Marshaler {
+		res, ok := <-resTmp.(<-chan session.Event)
+		if !ok {
+			return nil
+		}
+		return graphql.WriterFunc(func(w io.Writer) {
+			w.Write([]byte{'{'})
+			graphql.MarshalString(field.Alias).MarshalGQL(w)
+			w.Write([]byte{':'})
+			ec.marshalOEvent2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐEvent(ctx, field.Selections, res).MarshalGQL(w)
+			w.Write([]byte{'}'})
+		})
+	}
+}
+
+func (ec *executionContext) _TableEvent_session(ctx context.Context, field graphql.CollectedField, obj *session.TableEvent) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "TableEvent",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Session, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(session.ID)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TableEvent_type(ctx context.Context, field graphql.CollectedField, obj *session.TableEvent) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "TableEvent",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(session.EventType)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNEventType2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐEventType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TableEvent_table(ctx context.Context, field graphql.CollectedField, obj *session.TableEvent) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "TableEvent",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Table, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WaiterEvent_session(ctx context.Context, field graphql.CollectedField, obj *session.WaiterEvent) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "WaiterEvent",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Session, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(session.ID)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WaiterEvent_type(ctx context.Context, field graphql.CollectedField, obj *session.WaiterEvent) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "WaiterEvent",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(session.EventType)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNEventType2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐEventType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WaiterEvent_waiter(ctx context.Context, field graphql.CollectedField, obj *session.WaiterEvent) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "WaiterEvent",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Waiter, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -2248,9 +3014,105 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    ************************** interface.gotpl ***************************
 
+func (ec *executionContext) _Event(ctx context.Context, sel ast.SelectionSet, obj session.Event) graphql.Marshaler {
+	switch obj := (obj).(type) {
+	case nil:
+		return graphql.Null
+	case *session.WaiterEvent:
+		return ec._WaiterEvent(ctx, sel, obj)
+	case *session.ClientEvent:
+		return ec._ClientEvent(ctx, sel, obj)
+	case *session.TableEvent:
+		return ec._TableEvent(ctx, sel, obj)
+	case *session.ItemEvent:
+		return ec._ItemEvent(ctx, sel, obj)
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
+
+var clientEventImplementors = []string{"ClientEvent", "Event"}
+
+func (ec *executionContext) _ClientEvent(ctx context.Context, sel ast.SelectionSet, obj *session.ClientEvent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, clientEventImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ClientEvent")
+		case "session":
+			out.Values[i] = ec._ClientEvent_session(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "type":
+			out.Values[i] = ec._ClientEvent_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "client":
+			out.Values[i] = ec._ClientEvent_client(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var itemEventImplementors = []string{"ItemEvent", "Event"}
+
+func (ec *executionContext) _ItemEvent(ctx context.Context, sel ast.SelectionSet, obj *session.ItemEvent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, itemEventImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ItemEvent")
+		case "session":
+			out.Values[i] = ec._ItemEvent_session(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "type":
+			out.Values[i] = ec._ItemEvent_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "client":
+			out.Values[i] = ec._ItemEvent_client(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "item":
+			out.Values[i] = ec._ItemEvent_item(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
 
 var mutationImplementors = []string{"Mutation"}
 
@@ -2310,7 +3172,7 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 var orderImplementors = []string{"Order"}
 
-func (ec *executionContext) _Order(ctx context.Context, sel ast.SelectionSet, obj *Order) graphql.Marshaler {
+func (ec *executionContext) _Order(ctx context.Context, sel ast.SelectionSet, obj *session.Order) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, orderImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -2321,6 +3183,9 @@ func (ec *executionContext) _Order(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = graphql.MarshalString("Order")
 		case "client":
 			out.Values[i] = ec._Order_client(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "items":
 			out.Values[i] = ec._Order_items(ctx, field, obj)
 		default:
@@ -2377,7 +3242,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 
 var sessionImplementors = []string{"Session"}
 
-func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, obj *Session) graphql.Marshaler {
+func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, obj *session.State) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, sessionImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -2388,12 +3253,115 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = graphql.MarshalString("Session")
 		case "id":
 			out.Values[i] = ec._Session_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "waiter":
 			out.Values[i] = ec._Session_waiter(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "table":
 			out.Values[i] = ec._Session_table(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "orders":
 			out.Values[i] = ec._Session_orders(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var subscriptionImplementors = []string{"Subscription"}
+
+func (ec *executionContext) _Subscription(ctx context.Context, sel ast.SelectionSet) func() graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, subscriptionImplementors)
+	ctx = graphql.WithResolverContext(ctx, &graphql.ResolverContext{
+		Object: "Subscription",
+	})
+	if len(fields) != 1 {
+		ec.Errorf(ctx, "must subscribe to exactly one stream")
+		return nil
+	}
+
+	switch fields[0].Name {
+	case "sessionEvent":
+		return ec._Subscription_sessionEvent(ctx, fields[0])
+	default:
+		panic("unknown field " + strconv.Quote(fields[0].Name))
+	}
+}
+
+var tableEventImplementors = []string{"TableEvent", "Event"}
+
+func (ec *executionContext) _TableEvent(ctx context.Context, sel ast.SelectionSet, obj *session.TableEvent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, tableEventImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TableEvent")
+		case "session":
+			out.Values[i] = ec._TableEvent_session(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "type":
+			out.Values[i] = ec._TableEvent_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "table":
+			out.Values[i] = ec._TableEvent_table(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var waiterEventImplementors = []string{"WaiterEvent", "Event"}
+
+func (ec *executionContext) _WaiterEvent(ctx context.Context, sel ast.SelectionSet, obj *session.WaiterEvent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, waiterEventImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("WaiterEvent")
+		case "session":
+			out.Values[i] = ec._WaiterEvent_session(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "type":
+			out.Values[i] = ec._WaiterEvent_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "waiter":
+			out.Values[i] = ec._WaiterEvent_waiter(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2664,12 +3632,28 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
-	return graphql.UnmarshalID(v)
+func (ec *executionContext) unmarshalNEventType2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐEventType(ctx context.Context, v interface{}) (session.EventType, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	return session.EventType(tmp), err
 }
 
-func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
-	res := graphql.MarshalID(v)
+func (ec *executionContext) marshalNEventType2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐEventType(ctx context.Context, sel ast.SelectionSet, v session.EventType) graphql.Marshaler {
+	res := graphql.MarshalString(string(v))
+	if res == graphql.Null {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNID2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐID(ctx context.Context, v interface{}) (session.ID, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	return session.ID(tmp), err
+}
+
+func (ec *executionContext) marshalNID2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐID(ctx context.Context, sel ast.SelectionSet, v session.ID) graphql.Marshaler {
+	res := graphql.MarshalString(string(v))
 	if res == graphql.Null {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -2941,66 +3925,18 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return ec.marshalOBoolean2bool(ctx, sel, *v)
 }
 
-func (ec *executionContext) unmarshalOID2string(ctx context.Context, v interface{}) (string, error) {
-	return graphql.UnmarshalID(v)
-}
-
-func (ec *executionContext) marshalOID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
-	return graphql.MarshalID(v)
-}
-
-func (ec *executionContext) unmarshalOID2ᚕᚖstring(ctx context.Context, v interface{}) ([]*string, error) {
-	var vSlice []interface{}
-	if v != nil {
-		if tmp1, ok := v.([]interface{}); ok {
-			vSlice = tmp1
-		} else {
-			vSlice = []interface{}{v}
-		}
-	}
-	var err error
-	res := make([]*string, len(vSlice))
-	for i := range vSlice {
-		res[i], err = ec.unmarshalOID2ᚖstring(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalOID2ᚕᚖstring(ctx context.Context, sel ast.SelectionSet, v []*string) graphql.Marshaler {
+func (ec *executionContext) marshalOEvent2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐEvent(ctx context.Context, sel ast.SelectionSet, v session.Event) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalOID2ᚖstring(ctx, sel, v[i])
-	}
-
-	return ret
+	return ec._Event(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalOID2string(ctx, v)
-	return &res, err
-}
-
-func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec.marshalOID2string(ctx, sel, *v)
-}
-
-func (ec *executionContext) marshalOOrder2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋschemaᚐOrder(ctx context.Context, sel ast.SelectionSet, v Order) graphql.Marshaler {
+func (ec *executionContext) marshalOOrder2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐOrder(ctx context.Context, sel ast.SelectionSet, v session.Order) graphql.Marshaler {
 	return ec._Order(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOOrder2ᚕᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋschemaᚐOrder(ctx context.Context, sel ast.SelectionSet, v []*Order) graphql.Marshaler {
+func (ec *executionContext) marshalOOrder2ᚕᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐOrder(ctx context.Context, sel ast.SelectionSet, v []*session.Order) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -3027,7 +3963,7 @@ func (ec *executionContext) marshalOOrder2ᚕᚖgithubᚗcomᚋWondertanᚋtrape
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOOrder2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋschemaᚐOrder(ctx, sel, v[i])
+			ret[i] = ec.marshalOOrder2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐOrder(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -3040,18 +3976,18 @@ func (ec *executionContext) marshalOOrder2ᚕᚖgithubᚗcomᚋWondertanᚋtrape
 	return ret
 }
 
-func (ec *executionContext) marshalOOrder2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋschemaᚐOrder(ctx context.Context, sel ast.SelectionSet, v *Order) graphql.Marshaler {
+func (ec *executionContext) marshalOOrder2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐOrder(ctx context.Context, sel ast.SelectionSet, v *session.Order) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Order(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOSession2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋschemaᚐSession(ctx context.Context, sel ast.SelectionSet, v Session) graphql.Marshaler {
+func (ec *executionContext) marshalOSession2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐState(ctx context.Context, sel ast.SelectionSet, v session.State) graphql.Marshaler {
 	return ec._Session(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOSession2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋschemaᚐSession(ctx context.Context, sel ast.SelectionSet, v *Session) graphql.Marshaler {
+func (ec *executionContext) marshalOSession2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐState(ctx context.Context, sel ast.SelectionSet, v *session.State) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -3064,6 +4000,38 @@ func (ec *executionContext) unmarshalOString2string(ctx context.Context, v inter
 
 func (ec *executionContext) marshalOString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	return graphql.MarshalString(v)
+}
+
+func (ec *executionContext) unmarshalOString2ᚕstring(ctx context.Context, v interface{}) ([]string, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalOString2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOString2ᚕstring(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalOString2string(ctx, sel, v[i])
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {

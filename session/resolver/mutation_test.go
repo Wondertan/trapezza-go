@@ -1,58 +1,61 @@
-package schema
+package resolver
 
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/99designs/gqlgen/client"
-	"github.com/99designs/gqlgen/handler"
 
 	"github.com/Wondertan/trapezza-go/session"
 )
 
-func TestMutationResolver(t *testing.T) {
-	ctx := context.Background()
-	man := session.NewManager(ctx)
-	c := client.New(handler.GraphQL(NewExecutableSchema(Config{Resolvers: &Resolver{Manager: man}})))
+func TestMutationSubscription(t *testing.T) {
+	c := client.New(Handler(session.NewManager(context.Background())))
+	id := initSession(c)
 
-	var resp struct {
-		NewSession string
-	}
-
-	err := c.Post(
+	sub := c.Websocket(
 		`
-			 mutation($waiter: ID!, $table: ID!) {
-				newSession(waiter: $waiter, table: $table) 
-			 }
+		subscription($id: ID!) {
+			sessionEvent(id: $id) {
+				... on ClientEvent {
+					client
+				}
+				... on ItemEvent {
+					client
+					item
+				}
+				... on WaiterEvent {
+					waiter
+				}
+				... on TableEvent {
+					table
+				}
+			}
+		}
 		`,
-		&resp,
-		client.Var("waiter", "test"),
-		client.Var("table", "test"),
+		client.Var("id", id),
 	)
-	if err != nil {
-		t.Fatal(err)
-	}
+	defer sub.Close()
 
-	if resp.NewSession == "" {
-		t.Fatal("zero id")
-	}
-
-	id := resp.NewSession
+	time.Sleep(10 * time.Millisecond) // give time for subscription to init
 
 	t.Run("AddClient", func(t *testing.T) {
+		in := "test"
+
 		var resp struct {
 			AddClient bool
 		}
 
 		err := c.Post(
 			`
-				 mutation($id: ID!, $client: ID!) {
+				 mutation($id: ID!, $client: String!) {
 					addClient(session: $id, client: $client) 
 				 }
 			`,
 			&resp,
 			client.Var("id", id),
-			client.Var("client", "test"),
+			client.Var("client", in),
 		)
 		if err != nil {
 			t.Fatal(err)
@@ -61,23 +64,41 @@ func TestMutationResolver(t *testing.T) {
 		if !resp.AddClient {
 			t.Fatal("response is not true")
 		}
+
+		var event struct {
+			SessionEvent struct{
+				Client string
+			}
+		}
+
+		err = sub.Next(&event)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if event.SessionEvent.Client != in {
+			t.Fatal("clients are not equal")
+		}
 	})
 
 	t.Run("AddItem", func(t *testing.T) {
+		in := "test"
+		item := "test"
+
 		var resp struct {
 			AddItem bool
 		}
 
 		err := c.Post(
 			`
-				 mutation($id: ID!, $client: ID!, $item: ID!) {
+				 mutation($id: ID!, $client: String!, $item: String!) {
 					addItem(session: $id, client: $client, item: $item) 
 				 }
 			`,
 			&resp,
 			client.Var("id", id),
-			client.Var("client", "test"),
-			client.Var("item", "test"),
+			client.Var("client", in),
+			client.Var("item", item),
 		)
 		if err != nil {
 			t.Fatal(err)
@@ -86,22 +107,44 @@ func TestMutationResolver(t *testing.T) {
 		if !resp.AddItem {
 			t.Fatal("response is not true")
 		}
+
+		var event struct {
+			SessionEvent struct{
+				Client string
+				Item   string
+			}
+		}
+
+		err = sub.Next(&event)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if event.SessionEvent.Client != in {
+			t.Fatal("clients are not equal")
+		}
+
+		if event.SessionEvent.Item != item {
+			t.Fatal("items are not equal")
+		}
 	})
 
 	t.Run("SetWaiter", func(t *testing.T) {
+		waiter := "test"
+
 		var resp struct {
 			SetWaiter bool
 		}
 
 		err := c.Post(
 			`
-				 mutation($id: ID!, $waiter: ID!) {
+				 mutation($id: ID!, $waiter: String!) {
 					setWaiter(session: $id, waiter: $waiter) 
 				 }
 			`,
 			&resp,
 			client.Var("id", id),
-			client.Var("waiter", "test"),
+			client.Var("waiter", waiter),
 		)
 		if err != nil {
 			t.Fatal(err)
@@ -110,22 +153,39 @@ func TestMutationResolver(t *testing.T) {
 		if !resp.SetWaiter {
 			t.Fatal("response is not true")
 		}
+
+		var event struct {
+			SessionEvent struct{
+				Waiter string
+			}
+		}
+
+		err = sub.Next(&event)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if event.SessionEvent.Waiter != waiter {
+			t.Fatal("waiters are not equal")
+		}
 	})
 
 	t.Run("SetTable", func(t *testing.T) {
+		table := "test"
+
 		var resp struct {
 			SetTable bool
 		}
 
 		err := c.Post(
 			`
-				 mutation($id: ID!, $table: ID!) {
+				 mutation($id: ID!, $table: String!) {
 					setTable(session: $id, table: $table) 
 				 }
 			`,
 			&resp,
 			client.Var("id", id),
-			client.Var("table", "test"),
+			client.Var("table", table),
 		)
 		if err != nil {
 			t.Fatal(err)
@@ -134,40 +194,20 @@ func TestMutationResolver(t *testing.T) {
 		if !resp.SetTable {
 			t.Fatal("response is not true")
 		}
-	})
 
-	t.Run("Session", func(t *testing.T) {
-		var resp struct {
-			Session struct {
-				Id     string
-				Waiter string
-				Table  string
-				Orders []struct {
-					Client string
-					Items  []string
-				}
+		var event struct {
+			SessionEvent struct{
+				Table string
 			}
 		}
 
-		err := c.Post(
-			`
-				 query($id: ID!) {
-					session(id: $id) {
-						id,
-						waiter,
-						table,
-						orders {
-							client,
-							items
-						}
-					}
-				 }
-			`,
-			&resp,
-			client.Var("id", id),
-		)
+		err = sub.Next(&event)
 		if err != nil {
 			t.Fatal(err)
+		}
+
+		if event.SessionEvent.Table != table {
+			t.Fatal("tables are not equal")
 		}
 	})
 

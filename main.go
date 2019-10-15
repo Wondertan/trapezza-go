@@ -9,8 +9,8 @@ import (
 
 	"github.com/99designs/gqlgen/handler"
 
-	"github.com/Wondertan/trapezza-go/schema"
 	"github.com/Wondertan/trapezza-go/session"
+	"github.com/Wondertan/trapezza-go/session/resolver"
 )
 
 const defaultPort = "8080"
@@ -23,8 +23,8 @@ func main() {
 	ctx := context.Background()
 	man := session.NewManager(ctx)
 
-	http.Handle("/", handler.Playground("GraphQL playground", "/query"))
-	http.Handle("/query", handler.GraphQL(schema.NewExecutableSchema(schema.Config{Resolvers: &schema.Resolver{Manager: man}})))
+	http.Handle("/", handler.Playground("GraphQL playground", "/session"))
+	http.Handle("/session", resolver.Handler(man))
 
 	log.Fatal(http.ListenAndServe(":"+defaultPort, nil))
 }

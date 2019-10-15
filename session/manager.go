@@ -86,7 +86,7 @@ func (man *Manager) AddItem(ctx context.Context, id ID, client, item string) err
 		return err
 	}
 
-	return EmitEvent(ctx, ses, &itemEvent{client: client, item: item})
+	return EmitEvent(ctx, ses, &ItemEvent{Type: Item, Session: id,Client: client, Item: item})
 }
 
 func (man *Manager) AddClient(ctx context.Context, id ID, client string) error {
@@ -95,7 +95,7 @@ func (man *Manager) AddClient(ctx context.Context, id ID, client string) error {
 		return err
 	}
 
-	return EmitEvent(ctx, ses, &clientEvent{client: client})
+	return EmitEvent(ctx, ses, &ClientEvent{Type: Client, Session: id, Client: client})
 }
 
 func (man *Manager) SetWaiter(ctx context.Context, id ID, waiter string) error {
@@ -104,7 +104,7 @@ func (man *Manager) SetWaiter(ctx context.Context, id ID, waiter string) error {
 		return err
 	}
 
-	return EmitEvent(ctx, ses, &waiterEvent{waiter: waiter})
+	return EmitEvent(ctx, ses, &WaiterEvent{Type: Waiter, Session: id, Waiter: waiter})
 }
 
 func (man *Manager) SetTable(ctx context.Context, id ID, table string) error {
@@ -113,7 +113,7 @@ func (man *Manager) SetTable(ctx context.Context, id ID, table string) error {
 		return err
 	}
 
-	return EmitEvent(ctx, ses, &tableEvent{table: table})
+	return EmitEvent(ctx, ses, &TableEvent{Type: Table, Session: id, Table: table})
 }
 
 func EmitEvent(ctx context.Context, ses *Session, event Event) error {

@@ -8,7 +8,6 @@ type ID string
 
 // TODO Context handling
 type Session struct {
-	id    ID
 	state *State
 
 	eventReqs chan *eventReq
@@ -21,7 +20,7 @@ type Session struct {
 }
 
 func (ses *Session) ID() ID {
-	return ses.id
+	return ses.state.Id
 }
 
 func (ses *Session) Event(e Event) (chan error, error) {
@@ -63,8 +62,9 @@ func (ses *Session) Stop() {
 func newSession(ctx context.Context, id ID) *Session {
 	ctx, cancel := context.WithCancel(ctx)
 	ses := &Session{
-		id:        id,
-		state:     new(State),
+		state: &State{
+			Id: id,
+		},
 		eventReqs: make(chan *eventReq),
 		stateReqs: make(chan chan *State),
 		subReqs:   make(chan chan Event),
