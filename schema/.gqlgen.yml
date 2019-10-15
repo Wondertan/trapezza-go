@@ -1,0 +1,7 @@
+schema:
+  - schema.graphql
+exec:
+  filename: schema/exec.go
+model:
+  filename: schema/model.go
+autobind: []
