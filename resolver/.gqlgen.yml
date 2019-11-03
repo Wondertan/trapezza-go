@@ -14,12 +14,12 @@ models:
     model: types.Trapezza
   GroupItem:
     model: types.GroupItem
-  Client:
-    model: types.Client
+  ClientOrder:
+    model: types.ClientOrder
   Call:
     model: types.Call
-  Group:
-    model: types.Group
+  GroupOrder:
+    model: types.GroupOrder
   Item:
     model: types.Item
   TrapezzaSessionUpdate:
@@ -30,16 +30,16 @@ models:
     model: trapezza.ChangeWaiterEvent
   ChangePayer:
     model: trapezza.ChangePayerEvent
-  NewGroup:
-    model: trapezza.NewGroupEvent
+  NewGroupOrder:
+    model: trapezza.NewGroupOrderEvent
   AddItems:
     model: trapezza.AddItemsEvent
   RemoveItem:
     model: trapezza.RemoveItemEvent
   SplitItem:
     model: trapezza.SplitItemEvent
-  JoinGroup:
-    model: trapezza.JoinGroupEvent
+  JoinGroupOrder:
+    model: trapezza.JoinGroupOrderEvent
   CheckoutClient:
     model: trapezza.CheckoutClientEvent
   CheckoutPayer:

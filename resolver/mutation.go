@@ -45,8 +45,8 @@ func (m *mutation) ChangeWaiter(ctx context.Context, session, waiter string) (bo
 	return true, nil
 }
 
-func (m *mutation) NewGroup(ctx context.Context, session, payer string) (bool, error) {
-	err := m.emitEvent(ctx, session, &trapezza.NewGroupEvent{Payer: payer})
+func (m *mutation) NewGroupOrder(ctx context.Context, session, payer string) (bool, error) {
+	err := m.emitEvent(ctx, session, &trapezza.NewGroupOrderEvent{Payer: payer})
 	if err != nil {
 		return false, err
 	}
@@ -54,8 +54,8 @@ func (m *mutation) NewGroup(ctx context.Context, session, payer string) (bool, e
 	return true, nil
 }
 
-func (m *mutation) JoinGroup(ctx context.Context, session, client, payer string) (bool, error) {
-	err := m.emitEvent(ctx, session, &trapezza.JoinGroupEvent{Client: client, Payer: payer})
+func (m *mutation) JoinGroupOrder(ctx context.Context, session, client, payer string) (bool, error) {
+	err := m.emitEvent(ctx, session, &trapezza.JoinGroupOrderEvent{Client: client, Payer: payer})
 	if err != nil {
 		return false, err
 	}

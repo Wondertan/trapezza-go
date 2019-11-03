@@ -106,11 +106,11 @@ func (s *state) Handle(e session.Event) error {
 	case ChangePayer:
 		event := e.(*ChangePayerEvent)
 		return s.trapezza.ChangePayer(event.Payer)
-	case NewGroup:
-		event := e.(*NewGroupEvent)
+	case NewGroupOrder:
+		event := e.(*NewGroupOrderEvent)
 		return s.trapezza.NewGroup(event.Payer)
-	case JoinGroup:
-		event := e.(*JoinGroupEvent)
+	case JoinGroupOrder:
+		event := e.(*JoinGroupOrderEvent)
 		return s.trapezza.NewGroup(event.Payer)
 	case AddItems:
 		event := e.(*AddItemsEvent)

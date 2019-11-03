@@ -74,10 +74,10 @@ type ComplexityRoot struct {
 		Payer func(childComplexity int) int
 	}
 
-	Client struct {
+	ClientOrder struct {
 		Calls      func(childComplexity int) int
 		CheckedOut func(childComplexity int) int
-		Id         func(childComplexity int) int
+		Client     func(childComplexity int) int
 		Items      func(childComplexity int) int
 	}
 
@@ -86,16 +86,16 @@ type ComplexityRoot struct {
 		Trapezza func(childComplexity int) int
 	}
 
-	Group struct {
-		Clients func(childComplexity int) int
-		Payer   func(childComplexity int) int
-		Total   func(childComplexity int) int
-	}
-
 	GroupItem struct {
 		Groups func(childComplexity int) int
 		Id     func(childComplexity int) int
 		Price  func(childComplexity int) int
+	}
+
+	GroupOrder struct {
+		Orders func(childComplexity int) int
+		Payer  func(childComplexity int) int
+		Total  func(childComplexity int) int
 	}
 
 	Item struct {
@@ -103,7 +103,7 @@ type ComplexityRoot struct {
 		Price func(childComplexity int) int
 	}
 
-	JoinGroup struct {
+	JoinGroupOrder struct {
 		Client func(childComplexity int) int
 		Payer  func(childComplexity int) int
 	}
@@ -116,15 +116,15 @@ type ComplexityRoot struct {
 		CheckoutPayer          func(childComplexity int, trapezza string, payer string) int
 		EndTrapezzaSession     func(childComplexity int, rest string, table string) int
 		EndTrapezzaSessionByID func(childComplexity int, id string) int
-		JoinGroup              func(childComplexity int, trapezza string, client string, payer string) int
-		NewGroup               func(childComplexity int, trapezza string, payer string) int
+		JoinGroupOrder         func(childComplexity int, trapezza string, client string, payer string) int
+		NewGroupOrder          func(childComplexity int, trapezza string, payer string) int
 		NewTrapezzaSession     func(childComplexity int, rest string, table string) int
 		RemoveItem             func(childComplexity int, trapezza string, client string, item string) int
 		SplitItem              func(childComplexity int, trapezza string, who string, with string, item string) int
 		WaiterCall             func(childComplexity int, trapezza string, client string, message string) int
 	}
 
-	NewGroup struct {
+	NewGroupOrder struct {
 		Payer func(childComplexity int) int
 	}
 
@@ -179,8 +179,8 @@ type MutationResolver interface {
 	EndTrapezzaSessionByID(ctx context.Context, id string) (bool, error)
 	ChangeWaiter(ctx context.Context, trapezza string, waiter string) (bool, error)
 	ChangePayer(ctx context.Context, trapezza string, payer string) (bool, error)
-	NewGroup(ctx context.Context, trapezza string, payer string) (bool, error)
-	JoinGroup(ctx context.Context, trapezza string, client string, payer string) (bool, error)
+	NewGroupOrder(ctx context.Context, trapezza string, payer string) (bool, error)
+	JoinGroupOrder(ctx context.Context, trapezza string, client string, payer string) (bool, error)
 	AddItems(ctx context.Context, trapezza string, client string, items []string) (bool, error)
 	RemoveItem(ctx context.Context, trapezza string, client string, item string) (bool, error)
 	SplitItem(ctx context.Context, trapezza string, who string, with string, item string) (bool, error)
@@ -268,33 +268,33 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CheckoutPayer.Payer(childComplexity), true
 
-	case "Client.calls":
-		if e.complexity.Client.Calls == nil {
+	case "ClientOrder.calls":
+		if e.complexity.ClientOrder.Calls == nil {
 			break
 		}
 
-		return e.complexity.Client.Calls(childComplexity), true
+		return e.complexity.ClientOrder.Calls(childComplexity), true
 
-	case "Client.checkedOut":
-		if e.complexity.Client.CheckedOut == nil {
+	case "ClientOrder.checkedOut":
+		if e.complexity.ClientOrder.CheckedOut == nil {
 			break
 		}
 
-		return e.complexity.Client.CheckedOut(childComplexity), true
+		return e.complexity.ClientOrder.CheckedOut(childComplexity), true
 
-	case "Client.id":
-		if e.complexity.Client.Id == nil {
+	case "ClientOrder.client":
+		if e.complexity.ClientOrder.Client == nil {
 			break
 		}
 
-		return e.complexity.Client.Id(childComplexity), true
+		return e.complexity.ClientOrder.Client(childComplexity), true
 
-	case "Client.items":
-		if e.complexity.Client.Items == nil {
+	case "ClientOrder.items":
+		if e.complexity.ClientOrder.Items == nil {
 			break
 		}
 
-		return e.complexity.Client.Items(childComplexity), true
+		return e.complexity.ClientOrder.Items(childComplexity), true
 
 	case "EndTrapezzaSession.table":
 		if e.complexity.EndTrapezzaSession.Table == nil {
@@ -309,27 +309,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.EndTrapezzaSession.Trapezza(childComplexity), true
-
-	case "Group.clients":
-		if e.complexity.Group.Clients == nil {
-			break
-		}
-
-		return e.complexity.Group.Clients(childComplexity), true
-
-	case "Group.payer":
-		if e.complexity.Group.Payer == nil {
-			break
-		}
-
-		return e.complexity.Group.Payer(childComplexity), true
-
-	case "Group.total":
-		if e.complexity.Group.Total == nil {
-			break
-		}
-
-		return e.complexity.Group.Total(childComplexity), true
 
 	case "GroupItem.groups":
 		if e.complexity.GroupItem.Groups == nil {
@@ -352,6 +331,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.GroupItem.Price(childComplexity), true
 
+	case "GroupOrder.orders":
+		if e.complexity.GroupOrder.Orders == nil {
+			break
+		}
+
+		return e.complexity.GroupOrder.Orders(childComplexity), true
+
+	case "GroupOrder.payer":
+		if e.complexity.GroupOrder.Payer == nil {
+			break
+		}
+
+		return e.complexity.GroupOrder.Payer(childComplexity), true
+
+	case "GroupOrder.total":
+		if e.complexity.GroupOrder.Total == nil {
+			break
+		}
+
+		return e.complexity.GroupOrder.Total(childComplexity), true
+
 	case "Item.id":
 		if e.complexity.Item.Id == nil {
 			break
@@ -366,19 +366,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Item.Price(childComplexity), true
 
-	case "JoinGroup.client":
-		if e.complexity.JoinGroup.Client == nil {
+	case "JoinGroupOrder.client":
+		if e.complexity.JoinGroupOrder.Client == nil {
 			break
 		}
 
-		return e.complexity.JoinGroup.Client(childComplexity), true
+		return e.complexity.JoinGroupOrder.Client(childComplexity), true
 
-	case "JoinGroup.payer":
-		if e.complexity.JoinGroup.Payer == nil {
+	case "JoinGroupOrder.payer":
+		if e.complexity.JoinGroupOrder.Payer == nil {
 			break
 		}
 
-		return e.complexity.JoinGroup.Payer(childComplexity), true
+		return e.complexity.JoinGroupOrder.Payer(childComplexity), true
 
 	case "Mutation.addItems":
 		if e.complexity.Mutation.AddItems == nil {
@@ -464,29 +464,29 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.EndTrapezzaSessionByID(childComplexity, args["id"].(string)), true
 
-	case "Mutation.joinGroup":
-		if e.complexity.Mutation.JoinGroup == nil {
+	case "Mutation.joinGroupOrder":
+		if e.complexity.Mutation.JoinGroupOrder == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_joinGroup_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_joinGroupOrder_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.JoinGroup(childComplexity, args["trapezza"].(string), args["client"].(string), args["payer"].(string)), true
+		return e.complexity.Mutation.JoinGroupOrder(childComplexity, args["trapezza"].(string), args["client"].(string), args["payer"].(string)), true
 
-	case "Mutation.newGroup":
-		if e.complexity.Mutation.NewGroup == nil {
+	case "Mutation.newGroupOrder":
+		if e.complexity.Mutation.NewGroupOrder == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_newGroup_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_newGroupOrder_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.NewGroup(childComplexity, args["trapezza"].(string), args["payer"].(string)), true
+		return e.complexity.Mutation.NewGroupOrder(childComplexity, args["trapezza"].(string), args["payer"].(string)), true
 
 	case "Mutation.newTrapezzaSession":
 		if e.complexity.Mutation.NewTrapezzaSession == nil {
@@ -536,12 +536,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.WaiterCall(childComplexity, args["trapezza"].(string), args["client"].(string), args["message"].(string)), true
 
-	case "NewGroup.payer":
-		if e.complexity.NewGroup.Payer == nil {
+	case "NewGroupOrder.payer":
+		if e.complexity.NewGroupOrder.Payer == nil {
 			break
 		}
 
-		return e.complexity.NewGroup.Payer(childComplexity), true
+		return e.complexity.NewGroupOrder.Payer(childComplexity), true
 
 	case "NewTrapezzaSession.table":
 		if e.complexity.NewTrapezzaSession.Table == nil {
@@ -805,8 +805,8 @@ type Mutation {
     endTrapezzaSessionByID(id: String!): Boolean!
     changeWaiter(trapezza: String!, waiter: String!): Boolean!
     changePayer(trapezza: String!, payer: String!): Boolean!
-    newGroup(trapezza: String!, payer: String!): Boolean!
-    joinGroup(trapezza: String!, client: String!, payer: String!): Boolean!
+    newGroupOrder(trapezza: String!, payer: String!): Boolean!
+    joinGroupOrder(trapezza: String!, client: String!, payer: String!): Boolean!
     addItems(trapezza: String!, client: String!, items: [String!]): Boolean!
     removeItem(trapezza: String!, client: String!, item: String!): Boolean!
     splitItem(trapezza: String!, who: String!, with: String!, item: String!): Boolean!
@@ -830,17 +830,17 @@ type TrapezzaSession {
     waiter: String!
     started: Time!
     lastCall: Time!
-    groups: [Group]
+    groups: [GroupOrder]
 }
 
-type Group {
+type GroupOrder {
     payer: String!
-    clients: [Client]
+    orders: [ClientOrder]
     total: Float!
 }
 
-type Client {
-    id: String!
+type ClientOrder {
+    client: String!
     items: [GroupItem]
     calls: [Call]
     checkedOut: Boolean!
@@ -849,7 +849,7 @@ type Client {
 type GroupItem {
     id: String!
     price: Float!
-    groups: [Group]
+    groups: [GroupOrder]
 }
 
 type Item {
@@ -880,7 +880,7 @@ type ChangePayer {
     payer: String!
 }
 
-type NewGroup {
+type NewGroupOrder {
     payer: String!
 }
 
@@ -900,7 +900,7 @@ type SplitItem {
     item: String!
 }
 
-type JoinGroup {
+type JoinGroupOrder {
     payer: String!
     client: String!
 }
@@ -918,7 +918,7 @@ type WaiterCall {
     message: String!
 }
 
-union TrapezzaSessionEvents = WaiterCall | CheckoutPayer | CheckoutClient | JoinGroup | SplitItem | RemoveItem | AddItems | NewGroup | ChangePayer | ChangeWaiter
+union TrapezzaSessionEvents = WaiterCall | CheckoutPayer | CheckoutClient | JoinGroupOrder | SplitItem | RemoveItem | AddItems | NewGroupOrder | ChangePayer | ChangeWaiter
 union RestaurantEvents = NewTrapezzaSession | EndTrapezzaSession
 
 scalar Time`},
@@ -1082,7 +1082,7 @@ func (ec *executionContext) field_Mutation_endTrapezzaSession_args(ctx context.C
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_joinGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_joinGroupOrder_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -1112,7 +1112,7 @@ func (ec *executionContext) field_Mutation_joinGroup_args(ctx context.Context, r
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_newGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_newGroupOrder_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -1661,7 +1661,7 @@ func (ec *executionContext) _CheckoutPayer_payer(ctx context.Context, field grap
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Client_id(ctx context.Context, field graphql.CollectedField, obj *types.Client) (ret graphql.Marshaler) {
+func (ec *executionContext) _ClientOrder_client(ctx context.Context, field graphql.CollectedField, obj *types.ClientOrder) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -1671,7 +1671,7 @@ func (ec *executionContext) _Client_id(ctx context.Context, field graphql.Collec
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "Client",
+		Object:   "ClientOrder",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -1680,7 +1680,7 @@ func (ec *executionContext) _Client_id(ctx context.Context, field graphql.Collec
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Id, nil
+		return obj.Client, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1698,7 +1698,7 @@ func (ec *executionContext) _Client_id(ctx context.Context, field graphql.Collec
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Client_items(ctx context.Context, field graphql.CollectedField, obj *types.Client) (ret graphql.Marshaler) {
+func (ec *executionContext) _ClientOrder_items(ctx context.Context, field graphql.CollectedField, obj *types.ClientOrder) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -1708,7 +1708,7 @@ func (ec *executionContext) _Client_items(ctx context.Context, field graphql.Col
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "Client",
+		Object:   "ClientOrder",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -1732,7 +1732,7 @@ func (ec *executionContext) _Client_items(ctx context.Context, field graphql.Col
 	return ec.marshalOGroupItem2ᚕᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐGroupItem(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Client_calls(ctx context.Context, field graphql.CollectedField, obj *types.Client) (ret graphql.Marshaler) {
+func (ec *executionContext) _ClientOrder_calls(ctx context.Context, field graphql.CollectedField, obj *types.ClientOrder) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -1742,7 +1742,7 @@ func (ec *executionContext) _Client_calls(ctx context.Context, field graphql.Col
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "Client",
+		Object:   "ClientOrder",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -1766,7 +1766,7 @@ func (ec *executionContext) _Client_calls(ctx context.Context, field graphql.Col
 	return ec.marshalOCall2ᚕᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐCall(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Client_checkedOut(ctx context.Context, field graphql.CollectedField, obj *types.Client) (ret graphql.Marshaler) {
+func (ec *executionContext) _ClientOrder_checkedOut(ctx context.Context, field graphql.CollectedField, obj *types.ClientOrder) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -1776,7 +1776,7 @@ func (ec *executionContext) _Client_checkedOut(ctx context.Context, field graphq
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "Client",
+		Object:   "ClientOrder",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -1875,114 +1875,6 @@ func (ec *executionContext) _EndTrapezzaSession_trapezza(ctx context.Context, fi
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Group_payer(ctx context.Context, field graphql.CollectedField, obj *types.Group) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "Group",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Payer, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Group_clients(ctx context.Context, field graphql.CollectedField, obj *types.Group) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "Group",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Clients, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*types.Client)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOClient2ᚕᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐClient(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Group_total(ctx context.Context, field graphql.CollectedField, obj *types.Group) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "Group",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Total, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(float64)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _GroupItem_id(ctx context.Context, field graphql.CollectedField, obj *types.GroupItem) (ret graphql.Marshaler) {
@@ -2087,10 +1979,118 @@ func (ec *executionContext) _GroupItem_groups(ctx context.Context, field graphql
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*types.Group)
+	res := resTmp.([]*types.GroupOrder)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOGroup2ᚕᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐGroup(ctx, field.Selections, res)
+	return ec.marshalOGroupOrder2ᚕᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐGroupOrder(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _GroupOrder_payer(ctx context.Context, field graphql.CollectedField, obj *types.GroupOrder) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "GroupOrder",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Payer, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _GroupOrder_orders(ctx context.Context, field graphql.CollectedField, obj *types.GroupOrder) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "GroupOrder",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Orders, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*types.ClientOrder)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOClientOrder2ᚕᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐClientOrder(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _GroupOrder_total(ctx context.Context, field graphql.CollectedField, obj *types.GroupOrder) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "GroupOrder",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Total, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Item_id(ctx context.Context, field graphql.CollectedField, obj *types.Item) (ret graphql.Marshaler) {
@@ -2167,7 +2167,7 @@ func (ec *executionContext) _Item_price(ctx context.Context, field graphql.Colle
 	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _JoinGroup_payer(ctx context.Context, field graphql.CollectedField, obj *trapezza.JoinGroupEvent) (ret graphql.Marshaler) {
+func (ec *executionContext) _JoinGroupOrder_payer(ctx context.Context, field graphql.CollectedField, obj *trapezza.JoinGroupOrderEvent) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -2177,7 +2177,7 @@ func (ec *executionContext) _JoinGroup_payer(ctx context.Context, field graphql.
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "JoinGroup",
+		Object:   "JoinGroupOrder",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -2204,7 +2204,7 @@ func (ec *executionContext) _JoinGroup_payer(ctx context.Context, field graphql.
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _JoinGroup_client(ctx context.Context, field graphql.CollectedField, obj *trapezza.JoinGroupEvent) (ret graphql.Marshaler) {
+func (ec *executionContext) _JoinGroupOrder_client(ctx context.Context, field graphql.CollectedField, obj *trapezza.JoinGroupOrderEvent) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -2214,7 +2214,7 @@ func (ec *executionContext) _JoinGroup_client(ctx context.Context, field graphql
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "JoinGroup",
+		Object:   "JoinGroupOrder",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -2461,7 +2461,7 @@ func (ec *executionContext) _Mutation_changePayer(ctx context.Context, field gra
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_newGroup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_newGroupOrder(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -2478,7 +2478,7 @@ func (ec *executionContext) _Mutation_newGroup(ctx context.Context, field graphq
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_newGroup_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_newGroupOrder_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -2487,7 +2487,7 @@ func (ec *executionContext) _Mutation_newGroup(ctx context.Context, field graphq
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().NewGroup(rctx, args["trapezza"].(string), args["payer"].(string))
+		return ec.resolvers.Mutation().NewGroupOrder(rctx, args["trapezza"].(string), args["payer"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2505,7 +2505,7 @@ func (ec *executionContext) _Mutation_newGroup(ctx context.Context, field graphq
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_joinGroup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_joinGroupOrder(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -2522,7 +2522,7 @@ func (ec *executionContext) _Mutation_joinGroup(ctx context.Context, field graph
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_joinGroup_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_joinGroupOrder_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -2531,7 +2531,7 @@ func (ec *executionContext) _Mutation_joinGroup(ctx context.Context, field graph
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().JoinGroup(rctx, args["trapezza"].(string), args["client"].(string), args["payer"].(string))
+		return ec.resolvers.Mutation().JoinGroupOrder(rctx, args["trapezza"].(string), args["client"].(string), args["payer"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2813,7 +2813,7 @@ func (ec *executionContext) _Mutation_waiterCall(ctx context.Context, field grap
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _NewGroup_payer(ctx context.Context, field graphql.CollectedField, obj *trapezza.NewGroupEvent) (ret graphql.Marshaler) {
+func (ec *executionContext) _NewGroupOrder_payer(ctx context.Context, field graphql.CollectedField, obj *trapezza.NewGroupOrderEvent) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -2823,7 +2823,7 @@ func (ec *executionContext) _NewGroup_payer(ctx context.Context, field graphql.C
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "NewGroup",
+		Object:   "NewGroupOrder",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -3542,10 +3542,10 @@ func (ec *executionContext) _TrapezzaSession_groups(ctx context.Context, field g
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*types.Group)
+	res := resTmp.([]*types.GroupOrder)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOGroup2ᚕᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐGroup(ctx, field.Selections, res)
+	return ec.marshalOGroupOrder2ᚕᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐGroupOrder(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TrapezzaSessionUpdate_state(ctx context.Context, field graphql.CollectedField, obj *trapezza.Update) (ret graphql.Marshaler) {
@@ -4868,16 +4868,16 @@ func (ec *executionContext) _TrapezzaSessionEvents(ctx context.Context, sel ast.
 		return ec._CheckoutPayer(ctx, sel, obj)
 	case *trapezza.CheckoutClientEvent:
 		return ec._CheckoutClient(ctx, sel, obj)
-	case *trapezza.JoinGroupEvent:
-		return ec._JoinGroup(ctx, sel, obj)
+	case *trapezza.JoinGroupOrderEvent:
+		return ec._JoinGroupOrder(ctx, sel, obj)
 	case *trapezza.SplitItemEvent:
 		return ec._SplitItem(ctx, sel, obj)
 	case *trapezza.RemoveItemEvent:
 		return ec._RemoveItem(ctx, sel, obj)
 	case *trapezza.AddItemsEvent:
 		return ec._AddItems(ctx, sel, obj)
-	case *trapezza.NewGroupEvent:
-		return ec._NewGroup(ctx, sel, obj)
+	case *trapezza.NewGroupOrderEvent:
+		return ec._NewGroupOrder(ctx, sel, obj)
 	case *trapezza.ChangePayerEvent:
 		return ec._ChangePayer(ctx, sel, obj)
 	case *trapezza.ChangeWaiterEvent:
@@ -5060,28 +5060,28 @@ func (ec *executionContext) _CheckoutPayer(ctx context.Context, sel ast.Selectio
 	return out
 }
 
-var clientImplementors = []string{"Client"}
+var clientOrderImplementors = []string{"ClientOrder"}
 
-func (ec *executionContext) _Client(ctx context.Context, sel ast.SelectionSet, obj *types.Client) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.RequestContext, sel, clientImplementors)
+func (ec *executionContext) _ClientOrder(ctx context.Context, sel ast.SelectionSet, obj *types.ClientOrder) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, clientOrderImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("Client")
-		case "id":
-			out.Values[i] = ec._Client_id(ctx, field, obj)
+			out.Values[i] = graphql.MarshalString("ClientOrder")
+		case "client":
+			out.Values[i] = ec._ClientOrder_client(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "items":
-			out.Values[i] = ec._Client_items(ctx, field, obj)
+			out.Values[i] = ec._ClientOrder_items(ctx, field, obj)
 		case "calls":
-			out.Values[i] = ec._Client_calls(ctx, field, obj)
+			out.Values[i] = ec._ClientOrder_calls(ctx, field, obj)
 		case "checkedOut":
-			out.Values[i] = ec._Client_checkedOut(ctx, field, obj)
+			out.Values[i] = ec._ClientOrder_checkedOut(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -5114,40 +5114,6 @@ func (ec *executionContext) _EndTrapezzaSession(ctx context.Context, sel ast.Sel
 			}
 		case "trapezza":
 			out.Values[i] = ec._EndTrapezzaSession_trapezza(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var groupImplementors = []string{"Group"}
-
-func (ec *executionContext) _Group(ctx context.Context, sel ast.SelectionSet, obj *types.Group) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.RequestContext, sel, groupImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Group")
-		case "payer":
-			out.Values[i] = ec._Group_payer(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "clients":
-			out.Values[i] = ec._Group_clients(ctx, field, obj)
-		case "total":
-			out.Values[i] = ec._Group_total(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -5196,6 +5162,40 @@ func (ec *executionContext) _GroupItem(ctx context.Context, sel ast.SelectionSet
 	return out
 }
 
+var groupOrderImplementors = []string{"GroupOrder"}
+
+func (ec *executionContext) _GroupOrder(ctx context.Context, sel ast.SelectionSet, obj *types.GroupOrder) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, groupOrderImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("GroupOrder")
+		case "payer":
+			out.Values[i] = ec._GroupOrder_payer(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "orders":
+			out.Values[i] = ec._GroupOrder_orders(ctx, field, obj)
+		case "total":
+			out.Values[i] = ec._GroupOrder_total(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var itemImplementors = []string{"Item"}
 
 func (ec *executionContext) _Item(ctx context.Context, sel ast.SelectionSet, obj *types.Item) graphql.Marshaler {
@@ -5228,24 +5228,24 @@ func (ec *executionContext) _Item(ctx context.Context, sel ast.SelectionSet, obj
 	return out
 }
 
-var joinGroupImplementors = []string{"JoinGroup", "TrapezzaSessionEvents"}
+var joinGroupOrderImplementors = []string{"JoinGroupOrder", "TrapezzaSessionEvents"}
 
-func (ec *executionContext) _JoinGroup(ctx context.Context, sel ast.SelectionSet, obj *trapezza.JoinGroupEvent) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.RequestContext, sel, joinGroupImplementors)
+func (ec *executionContext) _JoinGroupOrder(ctx context.Context, sel ast.SelectionSet, obj *trapezza.JoinGroupOrderEvent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, joinGroupOrderImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("JoinGroup")
+			out.Values[i] = graphql.MarshalString("JoinGroupOrder")
 		case "payer":
-			out.Values[i] = ec._JoinGroup_payer(ctx, field, obj)
+			out.Values[i] = ec._JoinGroupOrder_payer(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "client":
-			out.Values[i] = ec._JoinGroup_client(ctx, field, obj)
+			out.Values[i] = ec._JoinGroupOrder_client(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -5300,13 +5300,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "newGroup":
-			out.Values[i] = ec._Mutation_newGroup(ctx, field)
+		case "newGroupOrder":
+			out.Values[i] = ec._Mutation_newGroupOrder(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "joinGroup":
-			out.Values[i] = ec._Mutation_joinGroup(ctx, field)
+		case "joinGroupOrder":
+			out.Values[i] = ec._Mutation_joinGroupOrder(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -5351,19 +5351,19 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 	return out
 }
 
-var newGroupImplementors = []string{"NewGroup", "TrapezzaSessionEvents"}
+var newGroupOrderImplementors = []string{"NewGroupOrder", "TrapezzaSessionEvents"}
 
-func (ec *executionContext) _NewGroup(ctx context.Context, sel ast.SelectionSet, obj *trapezza.NewGroupEvent) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.RequestContext, sel, newGroupImplementors)
+func (ec *executionContext) _NewGroupOrder(ctx context.Context, sel ast.SelectionSet, obj *trapezza.NewGroupOrderEvent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, newGroupOrderImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("NewGroup")
+			out.Values[i] = graphql.MarshalString("NewGroupOrder")
 		case "payer":
-			out.Values[i] = ec._NewGroup_payer(ctx, field, obj)
+			out.Values[i] = ec._NewGroupOrder_payer(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -6256,11 +6256,11 @@ func (ec *executionContext) marshalOCall2ᚖgithubᚗcomᚋWondertanᚋtrapezza�
 	return ec._Call(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOClient2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐClient(ctx context.Context, sel ast.SelectionSet, v types.Client) graphql.Marshaler {
-	return ec._Client(ctx, sel, &v)
+func (ec *executionContext) marshalOClientOrder2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐClientOrder(ctx context.Context, sel ast.SelectionSet, v types.ClientOrder) graphql.Marshaler {
+	return ec._ClientOrder(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOClient2ᚕᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐClient(ctx context.Context, sel ast.SelectionSet, v []*types.Client) graphql.Marshaler {
+func (ec *executionContext) marshalOClientOrder2ᚕᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐClientOrder(ctx context.Context, sel ast.SelectionSet, v []*types.ClientOrder) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -6287,7 +6287,7 @@ func (ec *executionContext) marshalOClient2ᚕᚖgithubᚗcomᚋWondertanᚋtrap
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOClient2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐClient(ctx, sel, v[i])
+			ret[i] = ec.marshalOClientOrder2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐClientOrder(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -6300,62 +6300,11 @@ func (ec *executionContext) marshalOClient2ᚕᚖgithubᚗcomᚋWondertanᚋtrap
 	return ret
 }
 
-func (ec *executionContext) marshalOClient2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐClient(ctx context.Context, sel ast.SelectionSet, v *types.Client) graphql.Marshaler {
+func (ec *executionContext) marshalOClientOrder2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐClientOrder(ctx context.Context, sel ast.SelectionSet, v *types.ClientOrder) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	return ec._Client(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOGroup2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐGroup(ctx context.Context, sel ast.SelectionSet, v types.Group) graphql.Marshaler {
-	return ec._Group(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOGroup2ᚕᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐGroup(ctx context.Context, sel ast.SelectionSet, v []*types.Group) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		rctx := &graphql.ResolverContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithResolverContext(ctx, rctx)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOGroup2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐGroup(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
-func (ec *executionContext) marshalOGroup2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐGroup(ctx context.Context, sel ast.SelectionSet, v *types.Group) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Group(ctx, sel, v)
+	return ec._ClientOrder(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOGroupItem2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐGroupItem(ctx context.Context, sel ast.SelectionSet, v types.GroupItem) graphql.Marshaler {
@@ -6407,6 +6356,57 @@ func (ec *executionContext) marshalOGroupItem2ᚖgithubᚗcomᚋWondertanᚋtrap
 		return graphql.Null
 	}
 	return ec._GroupItem(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOGroupOrder2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐGroupOrder(ctx context.Context, sel ast.SelectionSet, v types.GroupOrder) graphql.Marshaler {
+	return ec._GroupOrder(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOGroupOrder2ᚕᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐGroupOrder(ctx context.Context, sel ast.SelectionSet, v []*types.GroupOrder) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOGroupOrder2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐGroupOrder(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalOGroupOrder2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐGroupOrder(ctx context.Context, sel ast.SelectionSet, v *types.GroupOrder) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._GroupOrder(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOItem2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐItem(ctx context.Context, sel ast.SelectionSet, v types.Item) graphql.Marshaler {

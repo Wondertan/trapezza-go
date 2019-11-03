@@ -4,16 +4,16 @@ import (
 	"time"
 )
 
-type Group struct {
-	Payer   string
-	Clients []*Client
+type GroupOrder struct {
+	Payer  string
+	Orders []*ClientOrder
 
 	Total float64
 }
 
-func (g *Group) AddItems(client *Client, items []*GroupItem) error {
+func (g *GroupOrder) AddItems(order *ClientOrder, items []*GroupItem) error {
 	for _, item := range items {
-		err := g.AddItem(client, item)
+		err := g.AddItem(order, item)
 		if err != nil {
 			return err
 		}
@@ -22,66 +22,66 @@ func (g *Group) AddItems(client *Client, items []*GroupItem) error {
 	return nil
 }
 
-func (g *Group) AddItem(client *Client, item *GroupItem) error {
-	if len(client.Items) >= ItemsLimit {
+func (g *GroupOrder) AddItem(order *ClientOrder, item *GroupItem) error {
+	if len(order.Items) >= ItemsLimit {
 		return ErrItemsLimit
 	}
-	if client.CheckedOut {
+	if order.CheckedOut {
 		return ErrCheckedOut
 	}
 
 	item.addGroup(g)
-	client.addItem(item)
+	order.addItem(item)
 	return nil
 }
 
-func (g *Group) RemoveItem(client *Client, itemId string) error {
-	item, err := client.item(itemId)
+func (g *GroupOrder) RemoveItem(order *ClientOrder, itemId string) error {
+	item, err := order.item(itemId)
 	if err != nil {
 		return err
 	}
 
 	item.removeGroup(g)
-	return client.removeItem(itemId)
+	return order.removeItem(itemId)
 }
 
-func (g *Group) Item(client *Client, itemId string) (*GroupItem, error) {
-	return client.item(itemId)
+func (g *GroupOrder) Item(order *ClientOrder, itemId string) (*GroupItem, error) {
+	return order.item(itemId)
 }
 
-func (g *Group) Join(client *Client) error {
-	if len(g.Clients) >= ClientsLimit {
+func (g *GroupOrder) Join(order *ClientOrder) error {
+	if len(g.Orders) >= ClientsLimit {
 		return ErrClientsLimit
 	}
 
-	g.Clients = append(g.Clients, client)
+	g.Orders = append(g.Orders, order)
 	return nil
 }
 
-func (g *Group) Leave(client *Client) bool {
-	for i, c := range g.Clients {
-		if c.Id == client.Id {
-			g.Clients = append(g.Clients[:i], g.Clients[i+1:]...)
+func (g *GroupOrder) Leave(order *ClientOrder) bool {
+	for i, c := range g.Orders {
+		if c.Client == order.Client {
+			g.Orders = append(g.Orders[:i], g.Orders[i+1:]...)
 		}
 	}
 
-	return len(g.Clients) == 0
+	return len(g.Orders) == 0
 }
 
 // TODO Persist after checkout
-func (g *Group) CheckoutClient(client *Client) error {
-	if g.Payer == client.Id {
+func (g *GroupOrder) CheckoutClient(order *ClientOrder) error {
+	if g.Payer == order.Client {
 		return ErrPayerCheckout
 	}
 
-	client.CheckedOut = true
+	order.CheckedOut = true
 	return nil
 }
 
-func (g *Group) CheckoutPayer(client *Client) error {
-	client.CheckedOut = true
+func (g *GroupOrder) CheckoutPayer(order *ClientOrder) error {
+	order.CheckedOut = true
 
-	for _, c := range g.Clients {
+	for _, c := range g.Orders {
 		if !c.CheckedOut {
 			return g.ChangePayer(c) // TODO Handle that previous payer still owns his items
 		}
@@ -90,22 +90,22 @@ func (g *Group) CheckoutPayer(client *Client) error {
 	return nil
 }
 
-func (g *Group) AddCall(client *Client, call *Call) {
-	client.addCall(call)
+func (g *GroupOrder) AddCall(order *ClientOrder, call *Call) {
+	order.addCall(call)
 }
 
-func (g *Group) ChangePayer(client *Client) error {
-	if g.Payer == client.Id {
+func (g *GroupOrder) ChangePayer(order *ClientOrder) error {
+	if g.Payer == order.Client {
 		return ErrAlreadyPayer
 	}
 
-	g.Payer = client.Id
+	g.Payer = order.Client
 	return nil
 }
 
-func (g *Group) client(id string) (*Client, error) {
-	for _, c := range g.Clients {
-		if c.Id == id {
+func (g *GroupOrder) order(id string) (*ClientOrder, error) {
+	for _, c := range g.Orders {
+		if c.Client == id {
 			if c.CheckedOut {
 				return nil, ErrCheckedOut
 			}
@@ -122,18 +122,18 @@ type Call struct {
 	Message string
 }
 
-type Client struct {
-	Id         string
+type ClientOrder struct {
+	Client     string
 	Items      []*GroupItem
 	Calls      []*Call
 	CheckedOut bool
 }
 
-func (c *Client) addItem(item *GroupItem) {
+func (c *ClientOrder) addItem(item *GroupItem) {
 	c.Items = append(c.Items, item)
 }
 
-func (c *Client) removeItem(id string) error {
+func (c *ClientOrder) removeItem(id string) error {
 	for i, item := range c.Items {
 		if item.Id == id {
 			c.Items = append(c.Items[:i], c.Items[i+1:]...)
@@ -144,7 +144,7 @@ func (c *Client) removeItem(id string) error {
 	return ErrWrongItem
 }
 
-func (c *Client) item(id string) (*GroupItem, error) {
+func (c *ClientOrder) item(id string) (*GroupItem, error) {
 	for _, item := range c.Items {
 		if item.Id == id {
 			return item, nil
@@ -154,24 +154,24 @@ func (c *Client) item(id string) (*GroupItem, error) {
 	return nil, ErrWrongItem
 }
 
-func (c *Client) addCall(call *Call) {
+func (c *ClientOrder) addCall(call *Call) {
 	c.Calls = append(c.Calls, call)
 }
 
 type GroupItem struct {
 	*Item
 
-	Groups []*Group
+	Groups []*GroupOrder
 	split  float64
 }
 
-func (i *GroupItem) addGroup(g *Group) {
+func (i *GroupItem) addGroup(g *GroupOrder) {
 	i.clear()
 	i.Groups = append(i.Groups, g)
 	i.calc()
 }
 
-func (i *GroupItem) removeGroup(rm *Group) {
+func (i *GroupItem) removeGroup(rm *GroupOrder) {
 	i.clear()
 	for j, g := range i.Groups {
 		if g.Payer == rm.Payer {

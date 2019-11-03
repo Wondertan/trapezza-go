@@ -14,14 +14,14 @@ type EventType = session.EventType
 const (
 	ChangeWaiter   EventType = "CHANGE_WAITER"
 	ChangePayer    EventType = "CHANGE_PAYER"
-	NewGroup       EventType = "NEW_GROUP"
+	NewGroupOrder  EventType = "NEW_GROUP_ORDER"
 	AddItems       EventType = "ADD_ITEMS"
 	RemoveItem     EventType = "REMOVE_ITEM"
 	SplitItem      EventType = "SPLIT_ITEM"
 	CheckoutClient EventType = "CHECKOUT_CLIENT"
 	CheckoutPayer  EventType = "CHECKOUT_PAYER"
 	WaiterCall     EventType = "WAITER_CALL"
-	JoinGroup      EventType = "JOIN_GROUP"
+	JoinGroupOrder EventType = "JOIN_GROUP_ORDER"
 )
 
 type Event interface {
@@ -50,21 +50,21 @@ func (e *ChangeWaiterEvent) setID(id string) {
 	e.session = id
 }
 
-type NewGroupEvent struct {
+type NewGroupOrderEvent struct {
 	Payer string
 
 	session string
 }
 
-func (e *NewGroupEvent) Type() EventType {
-	return NewGroup
+func (e *NewGroupOrderEvent) Type() EventType {
+	return NewGroupOrder
 }
 
-func (e *NewGroupEvent) Trapezza() string {
+func (e *NewGroupOrderEvent) Trapezza() string {
 	return e.session
 }
 
-func (e *NewGroupEvent) setID(id string) {
+func (e *NewGroupOrderEvent) setID(id string) {
 	e.session = id
 }
 
@@ -144,22 +144,22 @@ func (e *ChangePayerEvent) setID(id string) {
 	e.session = id
 }
 
-type JoinGroupEvent struct {
+type JoinGroupOrderEvent struct {
 	Payer  string
 	Client string
 
 	session string
 }
 
-func (e *JoinGroupEvent) Type() EventType {
-	return JoinGroup
+func (e *JoinGroupOrderEvent) Type() EventType {
+	return JoinGroupOrder
 }
 
-func (e *JoinGroupEvent) Trapezza() string {
+func (e *JoinGroupOrderEvent) Trapezza() string {
 	return e.session
 }
 
-func (e *JoinGroupEvent) setID(id string) {
+func (e *JoinGroupOrderEvent) setID(id string) {
 	e.session = id
 }
 

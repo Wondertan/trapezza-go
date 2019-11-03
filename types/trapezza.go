@@ -49,7 +49,7 @@ func NewTrapezza(id string) *Trapezza {
 }
 
 // TODO Needed for GraphQL. Find better way.
-func (t *Trapezza) Groups() []*Group {
+func (t *Trapezza) Groups() []*GroupOrder {
 	return t.groups
 }
 
@@ -63,12 +63,12 @@ func (t *Trapezza) NewGroup(payer string) error {
 }
 
 func (t *Trapezza) JoinGroup(client, payer string) error {
-	c, cg, err := t.groups.ClientGroup(client)
+	c, cg, err := t.groups.OrderGroup(client)
 	if err != nil {
 		return err
 	}
 
-	_, pg, err := t.groups.ClientGroup(payer)
+	_, pg, err := t.groups.OrderGroup(payer)
 	if err != nil {
 		return err
 	}
@@ -86,7 +86,7 @@ func (t *Trapezza) JoinGroup(client, payer string) error {
 }
 
 func (t *Trapezza) AddItems(client string, items []*Item) error {
-	c, g, err := t.groups.ClientGroup(client)
+	c, g, err := t.groups.OrderGroup(client)
 	if err != nil {
 		return err
 	}
@@ -100,7 +100,7 @@ func (t *Trapezza) AddItems(client string, items []*Item) error {
 }
 
 func (t *Trapezza) RemoveItem(client string, item string) error {
-	c, g, err := t.groups.ClientGroup(client)
+	c, g, err := t.groups.OrderGroup(client)
 	if err != nil {
 		return err
 	}
@@ -109,7 +109,7 @@ func (t *Trapezza) RemoveItem(client string, item string) error {
 }
 
 func (t *Trapezza) SplitItem(who, with, item string) error {
-	whoC, whoG, err := t.groups.ClientGroup(who)
+	whoC, whoG, err := t.groups.OrderGroup(who)
 	if err != nil {
 		return err
 	}
@@ -119,7 +119,7 @@ func (t *Trapezza) SplitItem(who, with, item string) error {
 		return err
 	}
 
-	withC, withG, err := t.groups.ClientGroup(with)
+	withC, withG, err := t.groups.OrderGroup(with)
 	if err != nil {
 		return err
 	}
@@ -127,8 +127,8 @@ func (t *Trapezza) SplitItem(who, with, item string) error {
 	return withG.AddItem(withC, gitem)
 }
 
-func (t *Trapezza) ChangePayer(Payer string) error {
-	p, g, err := t.groups.ClientGroup(Payer)
+func (t *Trapezza) ChangePayer(payer string) error {
+	p, g, err := t.groups.OrderGroup(payer)
 	if err != nil {
 		return err
 	}
@@ -137,7 +137,7 @@ func (t *Trapezza) ChangePayer(Payer string) error {
 }
 
 func (t *Trapezza) CheckoutPayer(payer string) error {
-	c, g, err := t.groups.ClientGroup(payer)
+	c, g, err := t.groups.OrderGroup(payer)
 	if err != nil {
 		return err
 	}
@@ -146,7 +146,7 @@ func (t *Trapezza) CheckoutPayer(payer string) error {
 }
 
 func (t *Trapezza) CheckoutClient(client string) error {
-	c, g, err := t.groups.ClientGroup(client)
+	c, g, err := t.groups.OrderGroup(client)
 	if err != nil {
 		return err
 	}
@@ -161,7 +161,7 @@ func (t *Trapezza) WaiterCall(client, message string) error {
 		return ErrCallTimeout
 	}
 
-	c, g, err := t.groups.ClientGroup(client)
+	c, g, err := t.groups.OrderGroup(client)
 	if err != nil {
 		return err
 	}
@@ -175,11 +175,11 @@ func (t *Trapezza) WaiterCall(client, message string) error {
 	return nil
 }
 
-type Groups []*Group
+type Groups []*GroupOrder
 
-func (gs *Groups) ClientGroup(id string) (*Client, *Group, error) {
+func (gs *Groups) OrderGroup(client string) (*ClientOrder, *GroupOrder, error) {
 	for _, g := range *gs {
-		c, err := g.client(id)
+		c, err := g.order(client)
 		if err == nil {
 			return c, g, nil
 		}
@@ -193,18 +193,18 @@ func (gs *Groups) New(payer string) error {
 		return ErrGroupsLimit
 	}
 
-	_, _, err := gs.ClientGroup(payer)
+	_, _, err := gs.OrderGroup(payer)
 	if err == nil {
 		return ErrJoinedPayer
 	}
 
 	*gs = append(
 		*gs,
-		&Group{
+		&GroupOrder{
 			Payer: payer,
-			Clients: []*Client{
+			Orders: []*ClientOrder{
 				{
-					Id: payer,
+					Client: payer,
 				},
 			},
 		},

@@ -9,8 +9,8 @@ type Mutation {
     endTrapezzaSessionByID(id: String!): Boolean!
     changeWaiter(trapezza: String!, waiter: String!): Boolean!
     changePayer(trapezza: String!, payer: String!): Boolean!
-    newGroup(trapezza: String!, payer: String!): Boolean!
-    joinGroup(trapezza: String!, client: String!, payer: String!): Boolean!
+    newGroupOrder(trapezza: String!, payer: String!): Boolean!
+    joinGroupOrder(trapezza: String!, client: String!, payer: String!): Boolean!
     addItems(trapezza: String!, client: String!, items: [String!]): Boolean!
     removeItem(trapezza: String!, client: String!, item: String!): Boolean!
     splitItem(trapezza: String!, who: String!, with: String!, item: String!): Boolean!
@@ -34,17 +34,17 @@ type TrapezzaSession {
     waiter: String!
     started: Time!
     lastCall: Time!
-    groups: [Group]
+    groups: [GroupOrder]
 }
 
-type Group {
+type GroupOrder {
     payer: String!
-    clients: [Client]
+    orders: [ClientOrder]
     total: Float!
 }
 
-type Client {
-    id: String!
+type ClientOrder {
+    client: String!
     items: [GroupItem]
     calls: [Call]
     checkedOut: Boolean!
@@ -53,7 +53,7 @@ type Client {
 type GroupItem {
     id: String!
     price: Float!
-    groups: [Group]
+    groups: [GroupOrder]
 }
 
 type Item {
@@ -84,7 +84,7 @@ type ChangePayer {
     payer: String!
 }
 
-type NewGroup {
+type NewGroupOrder {
     payer: String!
 }
 
@@ -104,7 +104,7 @@ type SplitItem {
     item: String!
 }
 
-type JoinGroup {
+type JoinGroupOrder {
     payer: String!
     client: String!
 }
@@ -122,7 +122,7 @@ type WaiterCall {
     message: String!
 }
 
-union TrapezzaSessionEvents = WaiterCall | CheckoutPayer | CheckoutClient | JoinGroup | SplitItem | RemoveItem | AddItems | NewGroup | ChangePayer | ChangeWaiter
+union TrapezzaSessionEvents = WaiterCall | CheckoutPayer | CheckoutClient | JoinGroupOrder | SplitItem | RemoveItem | AddItems | NewGroupOrder | ChangePayer | ChangeWaiter
 union RestaurantEvents = NewTrapezzaSession | EndTrapezzaSession
 
 scalar Time
