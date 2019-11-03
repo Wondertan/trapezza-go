@@ -45,12 +45,12 @@ type GroupOrder {
 
 type ClientOrder {
     client: String!
-    items: [GroupItem]
+    items: [OrderItem]
     calls: [Call]
     checkedOut: Boolean!
 }
 
-type GroupItem {
+type OrderItem {
     id: String!
     price: Float!
     groups: [GroupOrder]

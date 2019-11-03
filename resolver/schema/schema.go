@@ -86,12 +86,6 @@ type ComplexityRoot struct {
 		Trapezza func(childComplexity int) int
 	}
 
-	GroupItem struct {
-		Groups func(childComplexity int) int
-		Id     func(childComplexity int) int
-		Price  func(childComplexity int) int
-	}
-
 	GroupOrder struct {
 		Orders func(childComplexity int) int
 		Payer  func(childComplexity int) int
@@ -131,6 +125,12 @@ type ComplexityRoot struct {
 	NewTrapezzaSession struct {
 		Table    func(childComplexity int) int
 		Trapezza func(childComplexity int) int
+	}
+
+	OrderItem struct {
+		Groups func(childComplexity int) int
+		Id     func(childComplexity int) int
+		Price  func(childComplexity int) int
 	}
 
 	Query struct {
@@ -309,27 +309,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.EndTrapezzaSession.Trapezza(childComplexity), true
-
-	case "GroupItem.groups":
-		if e.complexity.GroupItem.Groups == nil {
-			break
-		}
-
-		return e.complexity.GroupItem.Groups(childComplexity), true
-
-	case "GroupItem.id":
-		if e.complexity.GroupItem.Id == nil {
-			break
-		}
-
-		return e.complexity.GroupItem.Id(childComplexity), true
-
-	case "GroupItem.price":
-		if e.complexity.GroupItem.Price == nil {
-			break
-		}
-
-		return e.complexity.GroupItem.Price(childComplexity), true
 
 	case "GroupOrder.orders":
 		if e.complexity.GroupOrder.Orders == nil {
@@ -556,6 +535,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.NewTrapezzaSession.Trapezza(childComplexity), true
+
+	case "OrderItem.groups":
+		if e.complexity.OrderItem.Groups == nil {
+			break
+		}
+
+		return e.complexity.OrderItem.Groups(childComplexity), true
+
+	case "OrderItem.id":
+		if e.complexity.OrderItem.Id == nil {
+			break
+		}
+
+		return e.complexity.OrderItem.Id(childComplexity), true
+
+	case "OrderItem.price":
+		if e.complexity.OrderItem.Price == nil {
+			break
+		}
+
+		return e.complexity.OrderItem.Price(childComplexity), true
 
 	case "Query.trapezzaSession":
 		if e.complexity.Query.TrapezzaSession == nil {
@@ -841,12 +841,12 @@ type GroupOrder {
 
 type ClientOrder {
     client: String!
-    items: [GroupItem]
+    items: [OrderItem]
     calls: [Call]
     checkedOut: Boolean!
 }
 
-type GroupItem {
+type OrderItem {
     id: String!
     price: Float!
     groups: [GroupOrder]
@@ -1726,10 +1726,10 @@ func (ec *executionContext) _ClientOrder_items(ctx context.Context, field graphq
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*types.GroupItem)
+	res := resTmp.([]*types.OrderItem)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOGroupItem2ᚕᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐGroupItem(ctx, field.Selections, res)
+	return ec.marshalOOrderItem2ᚕᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐOrderItem(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ClientOrder_calls(ctx context.Context, field graphql.CollectedField, obj *types.ClientOrder) (ret graphql.Marshaler) {
@@ -1875,114 +1875,6 @@ func (ec *executionContext) _EndTrapezzaSession_trapezza(ctx context.Context, fi
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _GroupItem_id(ctx context.Context, field graphql.CollectedField, obj *types.GroupItem) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "GroupItem",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Id, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _GroupItem_price(ctx context.Context, field graphql.CollectedField, obj *types.GroupItem) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "GroupItem",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Price, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(float64)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _GroupItem_groups(ctx context.Context, field graphql.CollectedField, obj *types.GroupItem) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "GroupItem",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Groups, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*types.GroupOrder)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOGroupOrder2ᚕᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐGroupOrder(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _GroupOrder_payer(ctx context.Context, field graphql.CollectedField, obj *types.GroupOrder) (ret graphql.Marshaler) {
@@ -2922,6 +2814,114 @@ func (ec *executionContext) _NewTrapezzaSession_trapezza(ctx context.Context, fi
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrderItem_id(ctx context.Context, field graphql.CollectedField, obj *types.OrderItem) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "OrderItem",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Id, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrderItem_price(ctx context.Context, field graphql.CollectedField, obj *types.OrderItem) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "OrderItem",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Price, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrderItem_groups(ctx context.Context, field graphql.CollectedField, obj *types.OrderItem) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "OrderItem",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Groups, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*types.GroupOrder)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOGroupOrder2ᚕᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐGroupOrder(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_trapezzaSession(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -5128,40 +5128,6 @@ func (ec *executionContext) _EndTrapezzaSession(ctx context.Context, sel ast.Sel
 	return out
 }
 
-var groupItemImplementors = []string{"GroupItem"}
-
-func (ec *executionContext) _GroupItem(ctx context.Context, sel ast.SelectionSet, obj *types.GroupItem) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.RequestContext, sel, groupItemImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("GroupItem")
-		case "id":
-			out.Values[i] = ec._GroupItem_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "price":
-			out.Values[i] = ec._GroupItem_price(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "groups":
-			out.Values[i] = ec._GroupItem_groups(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
 var groupOrderImplementors = []string{"GroupOrder"}
 
 func (ec *executionContext) _GroupOrder(ctx context.Context, sel ast.SelectionSet, obj *types.GroupOrder) graphql.Marshaler {
@@ -5399,6 +5365,40 @@ func (ec *executionContext) _NewTrapezzaSession(ctx context.Context, sel ast.Sel
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var orderItemImplementors = []string{"OrderItem"}
+
+func (ec *executionContext) _OrderItem(ctx context.Context, sel ast.SelectionSet, obj *types.OrderItem) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, orderItemImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("OrderItem")
+		case "id":
+			out.Values[i] = ec._OrderItem_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "price":
+			out.Values[i] = ec._OrderItem_price(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "groups":
+			out.Values[i] = ec._OrderItem_groups(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6307,57 +6307,6 @@ func (ec *executionContext) marshalOClientOrder2ᚖgithubᚗcomᚋWondertanᚋtr
 	return ec._ClientOrder(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOGroupItem2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐGroupItem(ctx context.Context, sel ast.SelectionSet, v types.GroupItem) graphql.Marshaler {
-	return ec._GroupItem(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOGroupItem2ᚕᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐGroupItem(ctx context.Context, sel ast.SelectionSet, v []*types.GroupItem) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		rctx := &graphql.ResolverContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithResolverContext(ctx, rctx)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOGroupItem2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐGroupItem(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
-func (ec *executionContext) marshalOGroupItem2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐGroupItem(ctx context.Context, sel ast.SelectionSet, v *types.GroupItem) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._GroupItem(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalOGroupOrder2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐGroupOrder(ctx context.Context, sel ast.SelectionSet, v types.GroupOrder) graphql.Marshaler {
 	return ec._GroupOrder(ctx, sel, &v)
 }
@@ -6458,6 +6407,57 @@ func (ec *executionContext) marshalOItem2ᚖgithubᚗcomᚋWondertanᚋtrapezza�
 		return graphql.Null
 	}
 	return ec._Item(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOOrderItem2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐOrderItem(ctx context.Context, sel ast.SelectionSet, v types.OrderItem) graphql.Marshaler {
+	return ec._OrderItem(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOOrderItem2ᚕᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐOrderItem(ctx context.Context, sel ast.SelectionSet, v []*types.OrderItem) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOOrderItem2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐOrderItem(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalOOrderItem2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐOrderItem(ctx context.Context, sel ast.SelectionSet, v *types.OrderItem) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._OrderItem(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalORestaurantEvents2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋrestaurantᚐEvent(ctx context.Context, sel ast.SelectionSet, v restaurant.Event) graphql.Marshaler {

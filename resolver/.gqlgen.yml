@@ -12,8 +12,8 @@ autobind:
 models:
   TrapezzaSession:
     model: types.Trapezza
-  GroupItem:
-    model: types.GroupItem
+  OrderItem:
+    model: types.OrderItem
   ClientOrder:
     model: types.ClientOrder
   Call:

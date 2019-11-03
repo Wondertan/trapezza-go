@@ -11,7 +11,7 @@ type GroupOrder struct {
 	Total float64
 }
 
-func (g *GroupOrder) AddItems(order *ClientOrder, items []*GroupItem) error {
+func (g *GroupOrder) AddItems(order *ClientOrder, items []*OrderItem) error {
 	for _, item := range items {
 		err := g.AddItem(order, item)
 		if err != nil {
@@ -22,7 +22,7 @@ func (g *GroupOrder) AddItems(order *ClientOrder, items []*GroupItem) error {
 	return nil
 }
 
-func (g *GroupOrder) AddItem(order *ClientOrder, item *GroupItem) error {
+func (g *GroupOrder) AddItem(order *ClientOrder, item *OrderItem) error {
 	if len(order.Items) >= ItemsLimit {
 		return ErrItemsLimit
 	}
@@ -45,7 +45,7 @@ func (g *GroupOrder) RemoveItem(order *ClientOrder, itemId string) error {
 	return order.removeItem(itemId)
 }
 
-func (g *GroupOrder) Item(order *ClientOrder, itemId string) (*GroupItem, error) {
+func (g *GroupOrder) Item(order *ClientOrder, itemId string) (*OrderItem, error) {
 	return order.item(itemId)
 }
 
@@ -124,12 +124,12 @@ type Call struct {
 
 type ClientOrder struct {
 	Client     string
-	Items      []*GroupItem
+	Items      []*OrderItem
 	Calls      []*Call
 	CheckedOut bool
 }
 
-func (c *ClientOrder) addItem(item *GroupItem) {
+func (c *ClientOrder) addItem(item *OrderItem) {
 	c.Items = append(c.Items, item)
 }
 
@@ -144,7 +144,7 @@ func (c *ClientOrder) removeItem(id string) error {
 	return ErrWrongItem
 }
 
-func (c *ClientOrder) item(id string) (*GroupItem, error) {
+func (c *ClientOrder) item(id string) (*OrderItem, error) {
 	for _, item := range c.Items {
 		if item.Id == id {
 			return item, nil
@@ -158,20 +158,20 @@ func (c *ClientOrder) addCall(call *Call) {
 	c.Calls = append(c.Calls, call)
 }
 
-type GroupItem struct {
+type OrderItem struct {
 	*Item
 
 	Groups []*GroupOrder
 	split  float64
 }
 
-func (i *GroupItem) addGroup(g *GroupOrder) {
+func (i *OrderItem) addGroup(g *GroupOrder) {
 	i.clear()
 	i.Groups = append(i.Groups, g)
 	i.calc()
 }
 
-func (i *GroupItem) removeGroup(rm *GroupOrder) {
+func (i *OrderItem) removeGroup(rm *GroupOrder) {
 	i.clear()
 	for j, g := range i.Groups {
 		if g.Payer == rm.Payer {
@@ -181,14 +181,14 @@ func (i *GroupItem) removeGroup(rm *GroupOrder) {
 	i.calc()
 }
 
-func (i *GroupItem) clear() {
+func (i *OrderItem) clear() {
 	// remove prices from all groups
 	for _, g := range i.Groups {
 		g.Total -= i.split
 	}
 }
 
-func (i *GroupItem) calc() {
+func (i *OrderItem) calc() {
 	// calculate new price
 	i.split = i.Price / float64(len(i.Groups))
 

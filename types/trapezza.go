@@ -91,9 +91,9 @@ func (t *Trapezza) AddItems(client string, items []*Item) error {
 		return err
 	}
 
-	gitems := make([]*GroupItem, len(items))
+	gitems := make([]*OrderItem, len(items))
 	for i, item := range items {
-		gitems[i] = &GroupItem{Item: item}
+		gitems[i] = &OrderItem{Item: item}
 	}
 
 	return g.AddItems(c, gitems)
