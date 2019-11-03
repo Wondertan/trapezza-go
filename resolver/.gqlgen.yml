@@ -46,6 +46,8 @@ models:
     model: trapezza.CheckoutPayerEvent
   WaiterCall:
     model: trapezza.WaiterCallEvent
+  WaiterCallAnswer:
+    model: trapezza.WaiterCallAnswerEvent
   RestaurantEvents:
     model: restaurant.Event
   NewTrapezzaSession:

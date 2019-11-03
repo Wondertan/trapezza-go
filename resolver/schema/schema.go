@@ -116,6 +116,7 @@ type ComplexityRoot struct {
 		RemoveItem             func(childComplexity int, trapezza string, client string, item string) int
 		SplitItem              func(childComplexity int, trapezza string, who string, with string, item string) int
 		WaiterCall             func(childComplexity int, trapezza string, client string, message string) int
+		WaiterCallAnswer       func(childComplexity int, trapezza string, waiter string) int
 	}
 
 	NewGroupOrder struct {
@@ -171,6 +172,10 @@ type ComplexityRoot struct {
 		Client  func(childComplexity int) int
 		Message func(childComplexity int) int
 	}
+
+	WaiterCallAnswer struct {
+		Waiter func(childComplexity int) int
+	}
 }
 
 type MutationResolver interface {
@@ -187,6 +192,7 @@ type MutationResolver interface {
 	CheckoutPayer(ctx context.Context, trapezza string, payer string) (bool, error)
 	CheckoutClient(ctx context.Context, trapezza string, client string) (bool, error)
 	WaiterCall(ctx context.Context, trapezza string, client string, message string) (bool, error)
+	WaiterCallAnswer(ctx context.Context, trapezza string, waiter string) (bool, error)
 }
 type QueryResolver interface {
 	TrapezzaSession(ctx context.Context, rest string, table string) (*types.Trapezza, error)
@@ -515,6 +521,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.WaiterCall(childComplexity, args["trapezza"].(string), args["client"].(string), args["message"].(string)), true
 
+	case "Mutation.waiterCallAnswer":
+		if e.complexity.Mutation.WaiterCallAnswer == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_waiterCallAnswer_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.WaiterCallAnswer(childComplexity, args["trapezza"].(string), args["waiter"].(string)), true
+
 	case "NewGroupOrder.payer":
 		if e.complexity.NewGroupOrder.Payer == nil {
 			break
@@ -703,6 +721,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.WaiterCall.Message(childComplexity), true
 
+	case "WaiterCallAnswer.waiter":
+		if e.complexity.WaiterCallAnswer.Waiter == nil {
+			break
+		}
+
+		return e.complexity.WaiterCallAnswer.Waiter(childComplexity), true
+
 	}
 	return 0, false
 }
@@ -813,6 +838,7 @@ type Mutation {
     checkoutPayer(trapezza: String!, payer: String!): Boolean!
     checkoutClient(trapezza: String!, client: String!): Boolean!
     waiterCall(trapezza: String!, client: String!, message: String!): Boolean!
+    waiterCallAnswer(trapezza: String!, waiter: String!): Boolean!
 }
 
 type Subscription {
@@ -918,7 +944,13 @@ type WaiterCall {
     message: String!
 }
 
-union TrapezzaSessionEvents = WaiterCall | CheckoutPayer | CheckoutClient | JoinGroupOrder | SplitItem | RemoveItem | AddItems | NewGroupOrder | ChangePayer | ChangeWaiter
+type WaiterCallAnswer {
+    waiter: String!
+}
+
+union TrapezzaSessionEvents = WaiterCall | CheckoutPayer | CheckoutClient | JoinGroupOrder | SplitItem | RemoveItem
+    | AddItems | NewGroupOrder | ChangePayer | ChangeWaiter | WaiterCallAnswer
+
 union RestaurantEvents = NewTrapezzaSession | EndTrapezzaSession
 
 scalar Time`},
@@ -1221,6 +1253,28 @@ func (ec *executionContext) field_Mutation_splitItem_args(ctx context.Context, r
 		}
 	}
 	args["item"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_waiterCallAnswer_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["trapezza"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["trapezza"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["waiter"]; ok {
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["waiter"] = arg1
 	return args, nil
 }
 
@@ -2705,6 +2759,50 @@ func (ec *executionContext) _Mutation_waiterCall(ctx context.Context, field grap
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_waiterCallAnswer(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_waiterCallAnswer_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().WaiterCallAnswer(rctx, args["trapezza"].(string), args["waiter"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _NewGroupOrder_payer(ctx context.Context, field graphql.CollectedField, obj *trapezza.NewGroupOrderEvent) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -3673,6 +3771,43 @@ func (ec *executionContext) _WaiterCall_message(ctx context.Context, field graph
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Message, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WaiterCallAnswer_waiter(ctx context.Context, field graphql.CollectedField, obj *trapezza.WaiterCallAnswerEvent) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "WaiterCallAnswer",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Waiter, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4882,6 +5017,8 @@ func (ec *executionContext) _TrapezzaSessionEvents(ctx context.Context, sel ast.
 		return ec._ChangePayer(ctx, sel, obj)
 	case *trapezza.ChangeWaiterEvent:
 		return ec._ChangeWaiter(ctx, sel, obj)
+	case *trapezza.WaiterCallAnswerEvent:
+		return ec._WaiterCallAnswer(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -5306,6 +5443,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "waiterCallAnswer":
+			out.Values[i] = ec._Mutation_waiterCallAnswer(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5641,6 +5783,33 @@ func (ec *executionContext) _WaiterCall(ctx context.Context, sel ast.SelectionSe
 			}
 		case "message":
 			out.Values[i] = ec._WaiterCall_message(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var waiterCallAnswerImplementors = []string{"WaiterCallAnswer", "TrapezzaSessionEvents"}
+
+func (ec *executionContext) _WaiterCallAnswer(ctx context.Context, sel ast.SelectionSet, obj *trapezza.WaiterCallAnswerEvent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, waiterCallAnswerImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("WaiterCallAnswer")
+		case "waiter":
+			out.Values[i] = ec._WaiterCallAnswer_waiter(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

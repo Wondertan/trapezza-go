@@ -12,16 +12,17 @@ var ErrWrongEvent = errors.New("session: wrong event")
 type EventType = session.EventType
 
 const (
-	ChangeWaiter   EventType = "CHANGE_WAITER"
-	ChangePayer    EventType = "CHANGE_PAYER"
-	NewGroupOrder  EventType = "NEW_GROUP_ORDER"
-	AddItems       EventType = "ADD_ITEMS"
-	RemoveItem     EventType = "REMOVE_ITEM"
-	SplitItem      EventType = "SPLIT_ITEM"
-	CheckoutClient EventType = "CHECKOUT_CLIENT"
-	CheckoutPayer  EventType = "CHECKOUT_PAYER"
-	WaiterCall     EventType = "WAITER_CALL"
-	JoinGroupOrder EventType = "JOIN_GROUP_ORDER"
+	ChangeWaiter    EventType = "CHANGE_WAITER"
+	ChangePayer     EventType = "CHANGE_PAYER"
+	NewGroupOrder   EventType = "NEW_GROUP_ORDER"
+	AddItems        EventType = "ADD_ITEMS"
+	RemoveItem      EventType = "REMOVE_ITEM"
+	SplitItem       EventType = "SPLIT_ITEM"
+	CheckoutClient  EventType = "CHECKOUT_CLIENT"
+	CheckoutPayer   EventType = "CHECKOUT_PAYER"
+	WaiterCall      EventType = "WAITER_CALL"
+	WaiteCallAnswer EventType = "WAITER_CALL_ANSWER"
+	JoinGroupOrder  EventType = "JOIN_GROUP_ORDER"
 )
 
 type Event interface {
@@ -215,5 +216,23 @@ func (e *WaiterCallEvent) Trapezza() string {
 }
 
 func (e *WaiterCallEvent) setID(id string) {
+	e.session = id
+}
+
+type WaiterCallAnswerEvent struct {
+	Waiter string
+
+	session string
+}
+
+func (e *WaiterCallAnswerEvent) Type() EventType {
+	return WaiteCallAnswer
+}
+
+func (e *WaiterCallAnswerEvent) Trapezza() string {
+	return e.session
+}
+
+func (e *WaiterCallAnswerEvent) setID(id string) {
 	e.session = id
 }

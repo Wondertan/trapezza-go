@@ -17,6 +17,7 @@ type Mutation {
     checkoutPayer(trapezza: String!, payer: String!): Boolean!
     checkoutClient(trapezza: String!, client: String!): Boolean!
     waiterCall(trapezza: String!, client: String!, message: String!): Boolean!
+    waiterCallAnswer(trapezza: String!, waiter: String!): Boolean!
 }
 
 type Subscription {
@@ -122,7 +123,13 @@ type WaiterCall {
     message: String!
 }
 
-union TrapezzaSessionEvents = WaiterCall | CheckoutPayer | CheckoutClient | JoinGroupOrder | SplitItem | RemoveItem | AddItems | NewGroupOrder | ChangePayer | ChangeWaiter
+type WaiterCallAnswer {
+    waiter: String!
+}
+
+union TrapezzaSessionEvents = WaiterCall | CheckoutPayer | CheckoutClient | JoinGroupOrder | SplitItem | RemoveItem
+    | AddItems | NewGroupOrder | ChangePayer | ChangeWaiter | WaiterCallAnswer
+
 union RestaurantEvents = NewTrapezzaSession | EndTrapezzaSession
 
 scalar Time
