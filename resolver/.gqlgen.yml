@@ -1,0 +1,49 @@
+schema:
+  - "../../**/*.graphql"
+exec:
+  filename: schema/schema.go
+model:
+  filename: schema/model.go
+autobind:
+  - github.com/Wondertan/trapezza-go/types
+  - github.com/Wondertan/trapezza-go/trapezza
+
+models:
+  Trapezza:
+    model: types.Trapezza
+  GroupItem:
+    model: types.GroupItem
+  Client:
+    model: types.Client
+  Call:
+    model: types.Call
+  Group:
+    model: types.Group
+  Item:
+    model: types.Item
+  Update:
+    model: trapezza.Update
+  EventType:
+    model: trapezza.EventType
+  Event:
+    model: trapezza.Event
+  ChangeWaiterEvent:
+    model: trapezza.ChangeWaiterEvent
+  ChangePayerEvent:
+    model: trapezza.ChangePayerEvent
+  NewGroupEvent:
+    model: trapezza.NewGroupEvent
+  AddItemsEvent:
+    model: trapezza.AddItemsEvent
+  RemoveItemEvent:
+    model: trapezza.RemoveItemEvent
+  SplitItemEvent:
+    model: trapezza.SplitItemEvent
+  JoinGroupEvent:
+    model: trapezza.JoinGroupEvent
+  CheckoutClientEvent:
+    model: trapezza.CheckoutClientEvent
+  CheckoutPayerEvent:
+    model: trapezza.CheckoutPayerEvent
+  WaiterCallEvent:
+    model: trapezza.WaiterCallEvent

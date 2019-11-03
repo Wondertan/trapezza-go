@@ -1,0 +1,150 @@
+type Query {
+    session(rest: String!, table: String!): Trapezza
+    sessionById(id: String!): Trapezza
+}
+
+type Mutation {
+    new(rest: String!, table: String!): String!
+    changeWaiter(session: String!, waiter: String!): Boolean!
+    changePayer(session: String!, payer: String!): Boolean!
+    newGroup(session: String!, payer: String!): Boolean!
+    joinGroup(session: String!, client: String!, payer: String!): Boolean!
+    addItems(session: String!, client: String!, items: [String!]): Boolean!
+    removeItem(session: String!, client: String!, item: String!): Boolean!
+    splitItem(session: String!, who: String!, with: String!, item: String!): Boolean!
+    checkoutPayer(session: String!, payer: String!): Boolean!
+    checkoutClient(session: String!, client: String!): Boolean!
+    waiterCall(session: String!, client: String!, message: String!): Boolean!
+}
+
+type Subscription {
+    updates(id: String!): Update
+}
+
+type Update {
+    state: Trapezza
+    event: Event
+}
+
+type Trapezza {
+    id: String!
+    waiter: String!
+    started: Time!
+    lastCall: Time!
+    groups: [Group]
+}
+
+type Group {
+    payer: String!
+    clients: [Client]
+    total: Float!
+}
+
+type GroupItem {
+    id: String!
+    price: Float!
+    groups: [Group]
+}
+
+type Client {
+    id: String!
+    items: [GroupItem]
+    calls: [Call]
+    checkedOut: Boolean!
+}
+
+type Call {
+    time: Time!
+    message: String!
+}
+
+type Item {
+    id: String!
+    price: Float!
+}
+
+enum EventType {
+    ChangeWaiter
+    ChangePayer
+    NewGroup
+    JoinGroup
+    AddItems
+    RemoveItem
+    SplitItem
+    CheckoutClient
+    CheckoutPayer
+    WaiterCall
+}
+
+interface Event {
+    type: EventType!
+    trapezza: String!
+}
+
+type ChangeWaiterEvent implements Event{
+    type: EventType!
+    trapezza: String!
+    waiter: String!
+}
+
+type ChangePayerEvent implements Event{
+    type: EventType!
+    trapezza: String!
+    payer: String!
+}
+
+type NewGroupEvent implements Event{
+    type: EventType!
+    trapezza: String!
+    payer: String!
+}
+
+type AddItemsEvent implements Event{
+    type: EventType!
+    trapezza: String!
+    client: String!
+    items: [Item]
+}
+
+type RemoveItemEvent implements Event{
+    type: EventType!
+    trapezza: String!
+    client: String!
+    item: String!
+}
+
+type SplitItemEvent implements Event {
+    type: EventType!
+    trapezza: String!
+    who: String!
+    with: String!
+    item: String!
+}
+
+type JoinGroupEvent implements Event{
+    type: EventType!
+    trapezza: String!
+    payer: String!
+    client: String!
+}
+
+type CheckoutClientEvent implements Event {
+    type: EventType!
+    trapezza: String!
+    client: String!
+}
+
+type CheckoutPayerEvent implements Event {
+    type: EventType!
+    trapezza: String!
+    payer: String!
+}
+
+type WaiterCallEvent implements Event {
+    type: EventType!
+    trapezza: String!
+    client: String!
+    message: String!
+}
+
+scalar Time

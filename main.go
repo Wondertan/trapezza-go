@@ -9,8 +9,8 @@ import (
 
 	"github.com/99designs/gqlgen/handler"
 
-	"github.com/Wondertan/trapezza-go/session"
-	"github.com/Wondertan/trapezza-go/session/resolver"
+	"github.com/Wondertan/trapezza-go/resolver"
+	"github.com/Wondertan/trapezza-go/trapezza"
 )
 
 const defaultPort = "8080"
@@ -21,10 +21,21 @@ func init() {
 
 func main() {
 	ctx := context.Background()
-	man := session.NewManager(ctx)
+	man := trapezza.NewManager(ctx)
 
-	http.Handle("/", handler.Playground("GraphQL playground", "/session"))
-	http.Handle("/session", resolver.Handler(man))
+	http.Handle("/", handler.Playground("GraphQL playground", "/query"))
+	http.Handle("/query", resolver.Handler(man))
 
 	log.Fatal(http.ListenAndServe(":"+defaultPort, nil))
 }
+
+// func newClient() *dgo.Dgraph {
+// 	d, err := grpc.Dial("localhost:9080", grpc.WithInsecure())
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+//
+// 	return dgo.NewDgraphClient(
+// 		api.NewDgraphClient(d),
+// 	)
+// }
