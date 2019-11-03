@@ -14,21 +14,14 @@ func TestManager_Session(t *testing.T) {
 
 	man := NewManager(ctx)
 
-	rest := "test"
-	table := "test"
-
-	id, err := man.NewSession(rest, table)
+	ses, err := man.NewSession()
 	require.Nil(t, err, "unexpected error")
-	assert.Equal(t, len(id), IDLength, "id length is not right")
+	assert.Equal(t, len(ses.ID()), IDLength, "id length is not right")
 
-	ses, err := man.Session(rest, table)
-	require.Nil(t, err, "unexpected error")
-	assert.NotNil(t, ses)
-
-	err = man.EndSession(rest, table)
+	err = man.EndSession(ses.ID())
 	require.Nil(t, err, "unexpected error")
 
-	ses, err = man.SessionByID(id)
+	ses, err = man.Session(ses.ID())
 	assert.Equal(t, err, ErrNotFound)
 	assert.Nil(t, ses)
 }

@@ -5,15 +5,17 @@ package resolver
 
 import (
 	"github.com/Wondertan/trapezza-go/resolver/schema"
+	"github.com/Wondertan/trapezza-go/restaurant"
 	"github.com/Wondertan/trapezza-go/trapezza"
 )
 
 type Resolver struct {
-	trapezza *trapezza.Manager
+	trapezza   *trapezza.Manager
+	restaurant *restaurant.Manager
 }
 
-func NewTrapezzaResolver(trapezza *trapezza.Manager) schema.ResolverRoot {
-	return &Resolver{trapezza: trapezza}
+func NewTrapezzaResolver(trapezza *trapezza.Manager, restaurant *restaurant.Manager) schema.ResolverRoot {
+	return &Resolver{trapezza: trapezza, restaurant: restaurant}
 }
 
 func (r *Resolver) Mutation() schema.MutationResolver {

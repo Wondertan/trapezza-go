@@ -8,8 +8,8 @@ import (
 
 type query Resolver
 
-func (r *query) Session(ctx context.Context, rest, table string) (*types.Trapezza, error) {
-	s, err := r.trapezza.Session(rest, table)
+func (r *query) TrapezzaSession(ctx context.Context, rest, table string) (*types.Trapezza, error) {
+	s, err := r.restaurant.TrapezzaSession(rest, table)
 	if err != nil {
 		return nil, err
 	}
@@ -17,8 +17,8 @@ func (r *query) Session(ctx context.Context, rest, table string) (*types.Trapezz
 	return s.Trapezza(ctx)
 }
 
-func (r *query) SessionByID(ctx context.Context, id string) (*types.Trapezza, error) {
-	s, err := r.trapezza.SessionByID(id)
+func (r *query) TrapezzaSessionByID(ctx context.Context, id string) (*types.Trapezza, error) {
+	s, err := r.trapezza.Session(id)
 	if err != nil {
 		return nil, err
 	}

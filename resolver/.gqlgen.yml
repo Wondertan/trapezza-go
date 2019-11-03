@@ -7,9 +7,10 @@ model:
 autobind:
   - github.com/Wondertan/trapezza-go/types
   - github.com/Wondertan/trapezza-go/trapezza
+  - github.com/Wondertan/trapezza-go/restaurant
 
 models:
-  Trapezza:
+  TrapezzaSession:
     model: types.Trapezza
   GroupItem:
     model: types.GroupItem
@@ -21,29 +22,33 @@ models:
     model: types.Group
   Item:
     model: types.Item
-  Update:
+  TrapezzaSessionUpdate:
     model: trapezza.Update
-  EventType:
-    model: trapezza.EventType
-  Event:
+  TrapezzaSessionEvents:
     model: trapezza.Event
-  ChangeWaiterEvent:
+  ChangeWaiter:
     model: trapezza.ChangeWaiterEvent
-  ChangePayerEvent:
+  ChangePayer:
     model: trapezza.ChangePayerEvent
-  NewGroupEvent:
+  NewGroup:
     model: trapezza.NewGroupEvent
-  AddItemsEvent:
+  AddItems:
     model: trapezza.AddItemsEvent
-  RemoveItemEvent:
+  RemoveItem:
     model: trapezza.RemoveItemEvent
-  SplitItemEvent:
+  SplitItem:
     model: trapezza.SplitItemEvent
-  JoinGroupEvent:
+  JoinGroup:
     model: trapezza.JoinGroupEvent
-  CheckoutClientEvent:
+  CheckoutClient:
     model: trapezza.CheckoutClientEvent
-  CheckoutPayerEvent:
+  CheckoutPayer:
     model: trapezza.CheckoutPayerEvent
-  WaiterCallEvent:
+  WaiterCall:
     model: trapezza.WaiterCallEvent
+  RestaurantEvents:
+    model: restaurant.Event
+  NewTrapezzaSession:
+    model: restaurant.NewTrapezzaSessionEvent
+  EndTrapezzaSession:
+    model: restaurant.EndTrapezzaSessionEvent

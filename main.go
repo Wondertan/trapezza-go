@@ -10,32 +10,33 @@ import (
 	"github.com/99designs/gqlgen/handler"
 
 	"github.com/Wondertan/trapezza-go/resolver"
+	"github.com/Wondertan/trapezza-go/restaurant"
 	"github.com/Wondertan/trapezza-go/trapezza"
+	"github.com/Wondertan/trapezza-go/utils"
 )
 
-const defaultPort = "8080"
+const (
+	defaultPort = "8080"
+	endpoint    = "/query"
+)
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
 func main() {
-	ctx := context.Background()
-	man := trapezza.NewManager(ctx)
+	signal, ctx := utils.SetupInterruptHandler(context.Background())
+	defer signal.Close()
 
-	http.Handle("/", handler.Playground("GraphQL playground", "/query"))
-	http.Handle("/query", resolver.Handler(man))
+	trapezza := trapezza.NewManager(ctx)
+	restaurant := restaurant.NewManager(ctx, trapezza)
+
+	http.Handle("/", handler.Playground("Trapezza playground", endpoint))
+	http.Handle(endpoint, resolver.Handler(trapezza, restaurant))
+
+	log.Println("Trapezza-go server start successfully.")
+	log.Println("Listening on port: ", defaultPort)
+	log.Println("GraphQL enpoint: ", endpoint)
 
 	log.Fatal(http.ListenAndServe(":"+defaultPort, nil))
 }
-
-// func newClient() *dgo.Dgraph {
-// 	d, err := grpc.Dial("localhost:9080", grpc.WithInsecure())
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-//
-// 	return dgo.NewDgraphClient(
-// 		api.NewDgraphClient(d),
-// 	)
-// }

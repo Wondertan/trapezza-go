@@ -2,54 +2,115 @@ package restaurant
 
 import (
 	"context"
+	"errors"
+	"sync"
+
+	"github.com/Wondertan/trapezza-go/trapezza"
+)
+
+var (
+	ErrTableTaken = errors.New("session: table already has started session")
 )
 
 type sessionManager interface {
-	NewSession(rest, table string) (string, error)
-	EndSession(rest, table string) error
+	NewSession() (*trapezza.Session, error)
+	EndSession(string) error
+	Session(string) (*trapezza.Session, error)
 }
 
 type Manager struct {
-	sessions sessionManager
+	sessionManager sessionManager
+
+	sessions map[string]map[string]*trapezza.Session // map[Restaurant][Table]id
 
 	subs          map[string]map[int]chan Event
 	subReqs       chan *subReq
 	subCancelReqs chan *subCancelReq
 
+	l   sync.RWMutex
 	ctx context.Context
 }
 
 func NewManager(ctx context.Context, sessions sessionManager) *Manager {
 	man := &Manager{
-		sessions:      sessions,
-		subs:          make(map[string]map[int]chan Event),
-		subReqs:       make(chan *subReq),
-		subCancelReqs: make(chan *subCancelReq),
-		ctx:           ctx,
+		sessionManager: sessions,
+		sessions:       make(map[string]map[string]*trapezza.Session),
+		subs:           make(map[string]map[int]chan Event),
+		subReqs:        make(chan *subReq),
+		subCancelReqs:  make(chan *subCancelReq),
+		ctx:            ctx,
 	}
 
 	go man.handleSubs()
 	return man
 }
 
-func (man *Manager) NewSession(rest, table string) (string, error) {
-	id, err := man.sessions.NewSession(rest, table)
-	if err != nil {
-		return "", err
+func (man *Manager) NewTrapezzaSession(rest, table string) (*trapezza.Session, error) {
+	man.l.Lock()
+	defer man.l.Unlock()
+
+	sess, ok := man.sessions[rest]
+	if !ok {
+		sess = make(map[string]*trapezza.Session)
+		man.sessions[rest] = sess
 	}
 
-	go man.publish(&NewSessionEvent{id, table, rest})
-	return id, nil
+	_, ok = sess[table]
+	if ok {
+		return nil, ErrTableTaken
+	}
+
+	ses, err := man.sessionManager.NewSession()
+	if err != nil {
+		return nil, err
+	}
+
+	go man.publish(&NewTrapezzaSessionEvent{ses.ID(), table, rest})
+
+	sess[table] = ses
+	return ses, nil
 }
 
-func (man *Manager) EndSession(rest, table string) error {
-	err := man.sessions.EndSession(rest, table)
+func (man *Manager) EndTrapezzaSession(rest, table string) error {
+	man.l.Lock()
+	defer man.l.Unlock()
+
+	sess, ok := man.sessions[rest]
+	if !ok {
+		return trapezza.ErrNotFound
+	}
+
+	ses, ok := sess[table]
+	if !ok {
+		return trapezza.ErrNotFound
+	}
+
+	err := man.sessionManager.EndSession(ses.ID())
 	if err != nil {
 		return err
 	}
 
-	go man.publish(&EndSessionEvent{table, rest})
+	go man.publish(&EndTrapezzaSessionEvent{ses.ID(), table, rest})
+
+	delete(sess, table)
 	return nil
+}
+
+func (man *Manager) TrapezzaSession(rest, table string) (*trapezza.Session, error) {
+	man.l.RLock()
+	defer man.l.RUnlock()
+
+	sess, ok := man.sessions[rest]
+	if !ok {
+		return nil, trapezza.ErrNotFound
+	}
+
+	ses, ok := sess[table]
+	if !ok {
+		return nil, trapezza.ErrNotFound
+	}
+
+	return ses, nil
 }
 
 func (man *Manager) SubscribeEvents(ctx context.Context, restaurant string) (<-chan Event, error) {

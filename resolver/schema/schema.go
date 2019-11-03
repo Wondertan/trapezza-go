@@ -14,7 +14,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/Wondertan/trapezza-go/session"
+	"github.com/Wondertan/trapezza-go/restaurant"
 	"github.com/Wondertan/trapezza-go/trapezza"
 	"github.com/Wondertan/trapezza-go/types"
 	"github.com/vektah/gqlparser"
@@ -48,11 +48,9 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
-	AddItemsEvent struct {
-		Client   func(childComplexity int) int
-		Items    func(childComplexity int) int
-		Trapezza func(childComplexity int) int
-		Type     func(childComplexity int) int
+	AddItems struct {
+		Client func(childComplexity int) int
+		Items  func(childComplexity int) int
 	}
 
 	Call struct {
@@ -60,28 +58,20 @@ type ComplexityRoot struct {
 		Time    func(childComplexity int) int
 	}
 
-	ChangePayerEvent struct {
-		Payer    func(childComplexity int) int
-		Trapezza func(childComplexity int) int
-		Type     func(childComplexity int) int
+	ChangePayer struct {
+		Payer func(childComplexity int) int
 	}
 
-	ChangeWaiterEvent struct {
-		Trapezza func(childComplexity int) int
-		Type     func(childComplexity int) int
-		Waiter   func(childComplexity int) int
+	ChangeWaiter struct {
+		Waiter func(childComplexity int) int
 	}
 
-	CheckoutClientEvent struct {
-		Client   func(childComplexity int) int
-		Trapezza func(childComplexity int) int
-		Type     func(childComplexity int) int
+	CheckoutClient struct {
+		Client func(childComplexity int) int
 	}
 
-	CheckoutPayerEvent struct {
-		Payer    func(childComplexity int) int
-		Trapezza func(childComplexity int) int
-		Type     func(childComplexity int) int
+	CheckoutPayer struct {
+		Payer func(childComplexity int) int
 	}
 
 	Client struct {
@@ -89,6 +79,11 @@ type ComplexityRoot struct {
 		CheckedOut func(childComplexity int) int
 		Id         func(childComplexity int) int
 		Items      func(childComplexity int) int
+	}
+
+	EndTrapezzaSession struct {
+		Table    func(childComplexity int) int
+		Trapezza func(childComplexity int) int
 	}
 
 	Group struct {
@@ -108,58 +103,58 @@ type ComplexityRoot struct {
 		Price func(childComplexity int) int
 	}
 
-	JoinGroupEvent struct {
-		Client   func(childComplexity int) int
-		Payer    func(childComplexity int) int
-		Trapezza func(childComplexity int) int
-		Type     func(childComplexity int) int
+	JoinGroup struct {
+		Client func(childComplexity int) int
+		Payer  func(childComplexity int) int
 	}
 
 	Mutation struct {
-		AddItems       func(childComplexity int, session string, client string, items []string) int
-		ChangePayer    func(childComplexity int, session string, payer string) int
-		ChangeWaiter   func(childComplexity int, session string, waiter string) int
-		CheckoutClient func(childComplexity int, session string, client string) int
-		CheckoutPayer  func(childComplexity int, session string, payer string) int
-		JoinGroup      func(childComplexity int, session string, client string, payer string) int
-		New            func(childComplexity int, rest string, table string) int
-		NewGroup       func(childComplexity int, session string, payer string) int
-		RemoveItem     func(childComplexity int, session string, client string, item string) int
-		SplitItem      func(childComplexity int, session string, who string, with string, item string) int
-		WaiterCall     func(childComplexity int, session string, client string, message string) int
+		AddItems               func(childComplexity int, trapezza string, client string, items []string) int
+		ChangePayer            func(childComplexity int, trapezza string, payer string) int
+		ChangeWaiter           func(childComplexity int, trapezza string, waiter string) int
+		CheckoutClient         func(childComplexity int, trapezza string, client string) int
+		CheckoutPayer          func(childComplexity int, trapezza string, payer string) int
+		EndTrapezzaSession     func(childComplexity int, rest string, table string) int
+		EndTrapezzaSessionByID func(childComplexity int, id string) int
+		JoinGroup              func(childComplexity int, trapezza string, client string, payer string) int
+		NewGroup               func(childComplexity int, trapezza string, payer string) int
+		NewTrapezzaSession     func(childComplexity int, rest string, table string) int
+		RemoveItem             func(childComplexity int, trapezza string, client string, item string) int
+		SplitItem              func(childComplexity int, trapezza string, who string, with string, item string) int
+		WaiterCall             func(childComplexity int, trapezza string, client string, message string) int
 	}
 
-	NewGroupEvent struct {
-		Payer    func(childComplexity int) int
+	NewGroup struct {
+		Payer func(childComplexity int) int
+	}
+
+	NewTrapezzaSession struct {
+		Table    func(childComplexity int) int
 		Trapezza func(childComplexity int) int
-		Type     func(childComplexity int) int
 	}
 
 	Query struct {
-		Session     func(childComplexity int, rest string, table string) int
-		SessionByID func(childComplexity int, id string) int
+		TrapezzaSession     func(childComplexity int, rest string, table string) int
+		TrapezzaSessionByID func(childComplexity int, id string) int
 	}
 
-	RemoveItemEvent struct {
-		Client   func(childComplexity int) int
-		Item     func(childComplexity int) int
-		Trapezza func(childComplexity int) int
-		Type     func(childComplexity int) int
+	RemoveItem struct {
+		Client func(childComplexity int) int
+		Item   func(childComplexity int) int
 	}
 
-	SplitItemEvent struct {
-		Item     func(childComplexity int) int
-		Trapezza func(childComplexity int) int
-		Type     func(childComplexity int) int
-		Who      func(childComplexity int) int
-		With     func(childComplexity int) int
+	SplitItem struct {
+		Item func(childComplexity int) int
+		Who  func(childComplexity int) int
+		With func(childComplexity int) int
 	}
 
 	Subscription struct {
-		Updates func(childComplexity int, id string) int
+		RestaurantEvents       func(childComplexity int, id string) int
+		TrapezzaSessionUpdates func(childComplexity int, id string) int
 	}
 
-	Trapezza struct {
+	TrapezzaSession struct {
 		Groups   func(childComplexity int) int
 		Id       func(childComplexity int) int
 		LastCall func(childComplexity int) int
@@ -167,38 +162,39 @@ type ComplexityRoot struct {
 		Waiter   func(childComplexity int) int
 	}
 
-	Update struct {
+	TrapezzaSessionUpdate struct {
 		Event func(childComplexity int) int
 		State func(childComplexity int) int
 	}
 
-	WaiterCallEvent struct {
-		Client   func(childComplexity int) int
-		Message  func(childComplexity int) int
-		Trapezza func(childComplexity int) int
-		Type     func(childComplexity int) int
+	WaiterCall struct {
+		Client  func(childComplexity int) int
+		Message func(childComplexity int) int
 	}
 }
 
 type MutationResolver interface {
-	New(ctx context.Context, rest string, table string) (string, error)
-	ChangeWaiter(ctx context.Context, session string, waiter string) (bool, error)
-	ChangePayer(ctx context.Context, session string, payer string) (bool, error)
-	NewGroup(ctx context.Context, session string, payer string) (bool, error)
-	JoinGroup(ctx context.Context, session string, client string, payer string) (bool, error)
-	AddItems(ctx context.Context, session string, client string, items []string) (bool, error)
-	RemoveItem(ctx context.Context, session string, client string, item string) (bool, error)
-	SplitItem(ctx context.Context, session string, who string, with string, item string) (bool, error)
-	CheckoutPayer(ctx context.Context, session string, payer string) (bool, error)
-	CheckoutClient(ctx context.Context, session string, client string) (bool, error)
-	WaiterCall(ctx context.Context, session string, client string, message string) (bool, error)
+	NewTrapezzaSession(ctx context.Context, rest string, table string) (string, error)
+	EndTrapezzaSession(ctx context.Context, rest string, table string) (bool, error)
+	EndTrapezzaSessionByID(ctx context.Context, id string) (bool, error)
+	ChangeWaiter(ctx context.Context, trapezza string, waiter string) (bool, error)
+	ChangePayer(ctx context.Context, trapezza string, payer string) (bool, error)
+	NewGroup(ctx context.Context, trapezza string, payer string) (bool, error)
+	JoinGroup(ctx context.Context, trapezza string, client string, payer string) (bool, error)
+	AddItems(ctx context.Context, trapezza string, client string, items []string) (bool, error)
+	RemoveItem(ctx context.Context, trapezza string, client string, item string) (bool, error)
+	SplitItem(ctx context.Context, trapezza string, who string, with string, item string) (bool, error)
+	CheckoutPayer(ctx context.Context, trapezza string, payer string) (bool, error)
+	CheckoutClient(ctx context.Context, trapezza string, client string) (bool, error)
+	WaiterCall(ctx context.Context, trapezza string, client string, message string) (bool, error)
 }
 type QueryResolver interface {
-	Session(ctx context.Context, rest string, table string) (*types.Trapezza, error)
-	SessionByID(ctx context.Context, id string) (*types.Trapezza, error)
+	TrapezzaSession(ctx context.Context, rest string, table string) (*types.Trapezza, error)
+	TrapezzaSessionByID(ctx context.Context, id string) (*types.Trapezza, error)
 }
 type SubscriptionResolver interface {
-	Updates(ctx context.Context, id string) (<-chan *trapezza.Update, error)
+	TrapezzaSessionUpdates(ctx context.Context, id string) (<-chan *trapezza.Update, error)
+	RestaurantEvents(ctx context.Context, id string) (<-chan restaurant.Event, error)
 }
 
 type executableSchema struct {
@@ -216,33 +212,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
-	case "AddItemsEvent.client":
-		if e.complexity.AddItemsEvent.Client == nil {
+	case "AddItems.client":
+		if e.complexity.AddItems.Client == nil {
 			break
 		}
 
-		return e.complexity.AddItemsEvent.Client(childComplexity), true
+		return e.complexity.AddItems.Client(childComplexity), true
 
-	case "AddItemsEvent.items":
-		if e.complexity.AddItemsEvent.Items == nil {
+	case "AddItems.items":
+		if e.complexity.AddItems.Items == nil {
 			break
 		}
 
-		return e.complexity.AddItemsEvent.Items(childComplexity), true
-
-	case "AddItemsEvent.trapezza":
-		if e.complexity.AddItemsEvent.Trapezza == nil {
-			break
-		}
-
-		return e.complexity.AddItemsEvent.Trapezza(childComplexity), true
-
-	case "AddItemsEvent.type":
-		if e.complexity.AddItemsEvent.Type == nil {
-			break
-		}
-
-		return e.complexity.AddItemsEvent.Type(childComplexity), true
+		return e.complexity.AddItems.Items(childComplexity), true
 
 	case "Call.message":
 		if e.complexity.Call.Message == nil {
@@ -258,89 +240,33 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Call.Time(childComplexity), true
 
-	case "ChangePayerEvent.payer":
-		if e.complexity.ChangePayerEvent.Payer == nil {
+	case "ChangePayer.payer":
+		if e.complexity.ChangePayer.Payer == nil {
 			break
 		}
 
-		return e.complexity.ChangePayerEvent.Payer(childComplexity), true
+		return e.complexity.ChangePayer.Payer(childComplexity), true
 
-	case "ChangePayerEvent.trapezza":
-		if e.complexity.ChangePayerEvent.Trapezza == nil {
+	case "ChangeWaiter.waiter":
+		if e.complexity.ChangeWaiter.Waiter == nil {
 			break
 		}
 
-		return e.complexity.ChangePayerEvent.Trapezza(childComplexity), true
+		return e.complexity.ChangeWaiter.Waiter(childComplexity), true
 
-	case "ChangePayerEvent.type":
-		if e.complexity.ChangePayerEvent.Type == nil {
+	case "CheckoutClient.client":
+		if e.complexity.CheckoutClient.Client == nil {
 			break
 		}
 
-		return e.complexity.ChangePayerEvent.Type(childComplexity), true
+		return e.complexity.CheckoutClient.Client(childComplexity), true
 
-	case "ChangeWaiterEvent.trapezza":
-		if e.complexity.ChangeWaiterEvent.Trapezza == nil {
+	case "CheckoutPayer.payer":
+		if e.complexity.CheckoutPayer.Payer == nil {
 			break
 		}
 
-		return e.complexity.ChangeWaiterEvent.Trapezza(childComplexity), true
-
-	case "ChangeWaiterEvent.type":
-		if e.complexity.ChangeWaiterEvent.Type == nil {
-			break
-		}
-
-		return e.complexity.ChangeWaiterEvent.Type(childComplexity), true
-
-	case "ChangeWaiterEvent.waiter":
-		if e.complexity.ChangeWaiterEvent.Waiter == nil {
-			break
-		}
-
-		return e.complexity.ChangeWaiterEvent.Waiter(childComplexity), true
-
-	case "CheckoutClientEvent.client":
-		if e.complexity.CheckoutClientEvent.Client == nil {
-			break
-		}
-
-		return e.complexity.CheckoutClientEvent.Client(childComplexity), true
-
-	case "CheckoutClientEvent.trapezza":
-		if e.complexity.CheckoutClientEvent.Trapezza == nil {
-			break
-		}
-
-		return e.complexity.CheckoutClientEvent.Trapezza(childComplexity), true
-
-	case "CheckoutClientEvent.type":
-		if e.complexity.CheckoutClientEvent.Type == nil {
-			break
-		}
-
-		return e.complexity.CheckoutClientEvent.Type(childComplexity), true
-
-	case "CheckoutPayerEvent.payer":
-		if e.complexity.CheckoutPayerEvent.Payer == nil {
-			break
-		}
-
-		return e.complexity.CheckoutPayerEvent.Payer(childComplexity), true
-
-	case "CheckoutPayerEvent.trapezza":
-		if e.complexity.CheckoutPayerEvent.Trapezza == nil {
-			break
-		}
-
-		return e.complexity.CheckoutPayerEvent.Trapezza(childComplexity), true
-
-	case "CheckoutPayerEvent.type":
-		if e.complexity.CheckoutPayerEvent.Type == nil {
-			break
-		}
-
-		return e.complexity.CheckoutPayerEvent.Type(childComplexity), true
+		return e.complexity.CheckoutPayer.Payer(childComplexity), true
 
 	case "Client.calls":
 		if e.complexity.Client.Calls == nil {
@@ -369,6 +295,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Client.Items(childComplexity), true
+
+	case "EndTrapezzaSession.table":
+		if e.complexity.EndTrapezzaSession.Table == nil {
+			break
+		}
+
+		return e.complexity.EndTrapezzaSession.Table(childComplexity), true
+
+	case "EndTrapezzaSession.trapezza":
+		if e.complexity.EndTrapezzaSession.Trapezza == nil {
+			break
+		}
+
+		return e.complexity.EndTrapezzaSession.Trapezza(childComplexity), true
 
 	case "Group.clients":
 		if e.complexity.Group.Clients == nil {
@@ -426,33 +366,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Item.Price(childComplexity), true
 
-	case "JoinGroupEvent.client":
-		if e.complexity.JoinGroupEvent.Client == nil {
+	case "JoinGroup.client":
+		if e.complexity.JoinGroup.Client == nil {
 			break
 		}
 
-		return e.complexity.JoinGroupEvent.Client(childComplexity), true
+		return e.complexity.JoinGroup.Client(childComplexity), true
 
-	case "JoinGroupEvent.payer":
-		if e.complexity.JoinGroupEvent.Payer == nil {
+	case "JoinGroup.payer":
+		if e.complexity.JoinGroup.Payer == nil {
 			break
 		}
 
-		return e.complexity.JoinGroupEvent.Payer(childComplexity), true
-
-	case "JoinGroupEvent.trapezza":
-		if e.complexity.JoinGroupEvent.Trapezza == nil {
-			break
-		}
-
-		return e.complexity.JoinGroupEvent.Trapezza(childComplexity), true
-
-	case "JoinGroupEvent.type":
-		if e.complexity.JoinGroupEvent.Type == nil {
-			break
-		}
-
-		return e.complexity.JoinGroupEvent.Type(childComplexity), true
+		return e.complexity.JoinGroup.Payer(childComplexity), true
 
 	case "Mutation.addItems":
 		if e.complexity.Mutation.AddItems == nil {
@@ -464,7 +390,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddItems(childComplexity, args["session"].(string), args["client"].(string), args["items"].([]string)), true
+		return e.complexity.Mutation.AddItems(childComplexity, args["trapezza"].(string), args["client"].(string), args["items"].([]string)), true
 
 	case "Mutation.changePayer":
 		if e.complexity.Mutation.ChangePayer == nil {
@@ -476,7 +402,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.ChangePayer(childComplexity, args["session"].(string), args["payer"].(string)), true
+		return e.complexity.Mutation.ChangePayer(childComplexity, args["trapezza"].(string), args["payer"].(string)), true
 
 	case "Mutation.changeWaiter":
 		if e.complexity.Mutation.ChangeWaiter == nil {
@@ -488,7 +414,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.ChangeWaiter(childComplexity, args["session"].(string), args["waiter"].(string)), true
+		return e.complexity.Mutation.ChangeWaiter(childComplexity, args["trapezza"].(string), args["waiter"].(string)), true
 
 	case "Mutation.checkoutClient":
 		if e.complexity.Mutation.CheckoutClient == nil {
@@ -500,7 +426,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CheckoutClient(childComplexity, args["session"].(string), args["client"].(string)), true
+		return e.complexity.Mutation.CheckoutClient(childComplexity, args["trapezza"].(string), args["client"].(string)), true
 
 	case "Mutation.checkoutPayer":
 		if e.complexity.Mutation.CheckoutPayer == nil {
@@ -512,7 +438,31 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CheckoutPayer(childComplexity, args["session"].(string), args["payer"].(string)), true
+		return e.complexity.Mutation.CheckoutPayer(childComplexity, args["trapezza"].(string), args["payer"].(string)), true
+
+	case "Mutation.endTrapezzaSession":
+		if e.complexity.Mutation.EndTrapezzaSession == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_endTrapezzaSession_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.EndTrapezzaSession(childComplexity, args["rest"].(string), args["table"].(string)), true
+
+	case "Mutation.endTrapezzaSessionByID":
+		if e.complexity.Mutation.EndTrapezzaSessionByID == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_endTrapezzaSessionByID_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.EndTrapezzaSessionByID(childComplexity, args["id"].(string)), true
 
 	case "Mutation.joinGroup":
 		if e.complexity.Mutation.JoinGroup == nil {
@@ -524,19 +474,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.JoinGroup(childComplexity, args["session"].(string), args["client"].(string), args["payer"].(string)), true
-
-	case "Mutation.new":
-		if e.complexity.Mutation.New == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_new_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.New(childComplexity, args["rest"].(string), args["table"].(string)), true
+		return e.complexity.Mutation.JoinGroup(childComplexity, args["trapezza"].(string), args["client"].(string), args["payer"].(string)), true
 
 	case "Mutation.newGroup":
 		if e.complexity.Mutation.NewGroup == nil {
@@ -548,7 +486,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.NewGroup(childComplexity, args["session"].(string), args["payer"].(string)), true
+		return e.complexity.Mutation.NewGroup(childComplexity, args["trapezza"].(string), args["payer"].(string)), true
+
+	case "Mutation.newTrapezzaSession":
+		if e.complexity.Mutation.NewTrapezzaSession == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_newTrapezzaSession_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.NewTrapezzaSession(childComplexity, args["rest"].(string), args["table"].(string)), true
 
 	case "Mutation.removeItem":
 		if e.complexity.Mutation.RemoveItem == nil {
@@ -560,7 +510,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.RemoveItem(childComplexity, args["session"].(string), args["client"].(string), args["item"].(string)), true
+		return e.complexity.Mutation.RemoveItem(childComplexity, args["trapezza"].(string), args["client"].(string), args["item"].(string)), true
 
 	case "Mutation.splitItem":
 		if e.complexity.Mutation.SplitItem == nil {
@@ -572,7 +522,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SplitItem(childComplexity, args["session"].(string), args["who"].(string), args["with"].(string), args["item"].(string)), true
+		return e.complexity.Mutation.SplitItem(childComplexity, args["trapezza"].(string), args["who"].(string), args["with"].(string), args["item"].(string)), true
 
 	case "Mutation.waiterCall":
 		if e.complexity.Mutation.WaiterCall == nil {
@@ -584,204 +534,174 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.WaiterCall(childComplexity, args["session"].(string), args["client"].(string), args["message"].(string)), true
+		return e.complexity.Mutation.WaiterCall(childComplexity, args["trapezza"].(string), args["client"].(string), args["message"].(string)), true
 
-	case "NewGroupEvent.payer":
-		if e.complexity.NewGroupEvent.Payer == nil {
+	case "NewGroup.payer":
+		if e.complexity.NewGroup.Payer == nil {
 			break
 		}
 
-		return e.complexity.NewGroupEvent.Payer(childComplexity), true
+		return e.complexity.NewGroup.Payer(childComplexity), true
 
-	case "NewGroupEvent.trapezza":
-		if e.complexity.NewGroupEvent.Trapezza == nil {
+	case "NewTrapezzaSession.table":
+		if e.complexity.NewTrapezzaSession.Table == nil {
 			break
 		}
 
-		return e.complexity.NewGroupEvent.Trapezza(childComplexity), true
+		return e.complexity.NewTrapezzaSession.Table(childComplexity), true
 
-	case "NewGroupEvent.type":
-		if e.complexity.NewGroupEvent.Type == nil {
+	case "NewTrapezzaSession.trapezza":
+		if e.complexity.NewTrapezzaSession.Trapezza == nil {
 			break
 		}
 
-		return e.complexity.NewGroupEvent.Type(childComplexity), true
+		return e.complexity.NewTrapezzaSession.Trapezza(childComplexity), true
 
-	case "Query.session":
-		if e.complexity.Query.Session == nil {
+	case "Query.trapezzaSession":
+		if e.complexity.Query.TrapezzaSession == nil {
 			break
 		}
 
-		args, err := ec.field_Query_session_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_trapezzaSession_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.Session(childComplexity, args["rest"].(string), args["table"].(string)), true
+		return e.complexity.Query.TrapezzaSession(childComplexity, args["rest"].(string), args["table"].(string)), true
 
-	case "Query.sessionById":
-		if e.complexity.Query.SessionByID == nil {
+	case "Query.trapezzaSessionByID":
+		if e.complexity.Query.TrapezzaSessionByID == nil {
 			break
 		}
 
-		args, err := ec.field_Query_sessionById_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_trapezzaSessionByID_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.SessionByID(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.TrapezzaSessionByID(childComplexity, args["id"].(string)), true
 
-	case "RemoveItemEvent.client":
-		if e.complexity.RemoveItemEvent.Client == nil {
+	case "RemoveItem.client":
+		if e.complexity.RemoveItem.Client == nil {
 			break
 		}
 
-		return e.complexity.RemoveItemEvent.Client(childComplexity), true
+		return e.complexity.RemoveItem.Client(childComplexity), true
 
-	case "RemoveItemEvent.item":
-		if e.complexity.RemoveItemEvent.Item == nil {
+	case "RemoveItem.item":
+		if e.complexity.RemoveItem.Item == nil {
 			break
 		}
 
-		return e.complexity.RemoveItemEvent.Item(childComplexity), true
+		return e.complexity.RemoveItem.Item(childComplexity), true
 
-	case "RemoveItemEvent.trapezza":
-		if e.complexity.RemoveItemEvent.Trapezza == nil {
+	case "SplitItem.item":
+		if e.complexity.SplitItem.Item == nil {
 			break
 		}
 
-		return e.complexity.RemoveItemEvent.Trapezza(childComplexity), true
+		return e.complexity.SplitItem.Item(childComplexity), true
 
-	case "RemoveItemEvent.type":
-		if e.complexity.RemoveItemEvent.Type == nil {
+	case "SplitItem.who":
+		if e.complexity.SplitItem.Who == nil {
 			break
 		}
 
-		return e.complexity.RemoveItemEvent.Type(childComplexity), true
+		return e.complexity.SplitItem.Who(childComplexity), true
 
-	case "SplitItemEvent.item":
-		if e.complexity.SplitItemEvent.Item == nil {
+	case "SplitItem.with":
+		if e.complexity.SplitItem.With == nil {
 			break
 		}
 
-		return e.complexity.SplitItemEvent.Item(childComplexity), true
+		return e.complexity.SplitItem.With(childComplexity), true
 
-	case "SplitItemEvent.trapezza":
-		if e.complexity.SplitItemEvent.Trapezza == nil {
+	case "Subscription.restaurantEvents":
+		if e.complexity.Subscription.RestaurantEvents == nil {
 			break
 		}
 
-		return e.complexity.SplitItemEvent.Trapezza(childComplexity), true
-
-	case "SplitItemEvent.type":
-		if e.complexity.SplitItemEvent.Type == nil {
-			break
-		}
-
-		return e.complexity.SplitItemEvent.Type(childComplexity), true
-
-	case "SplitItemEvent.who":
-		if e.complexity.SplitItemEvent.Who == nil {
-			break
-		}
-
-		return e.complexity.SplitItemEvent.Who(childComplexity), true
-
-	case "SplitItemEvent.with":
-		if e.complexity.SplitItemEvent.With == nil {
-			break
-		}
-
-		return e.complexity.SplitItemEvent.With(childComplexity), true
-
-	case "Subscription.updates":
-		if e.complexity.Subscription.Updates == nil {
-			break
-		}
-
-		args, err := ec.field_Subscription_updates_args(context.TODO(), rawArgs)
+		args, err := ec.field_Subscription_restaurantEvents_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Subscription.Updates(childComplexity, args["id"].(string)), true
+		return e.complexity.Subscription.RestaurantEvents(childComplexity, args["id"].(string)), true
 
-	case "Trapezza.groups":
-		if e.complexity.Trapezza.Groups == nil {
+	case "Subscription.trapezzaSessionUpdates":
+		if e.complexity.Subscription.TrapezzaSessionUpdates == nil {
 			break
 		}
 
-		return e.complexity.Trapezza.Groups(childComplexity), true
+		args, err := ec.field_Subscription_trapezzaSessionUpdates_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
 
-	case "Trapezza.id":
-		if e.complexity.Trapezza.Id == nil {
+		return e.complexity.Subscription.TrapezzaSessionUpdates(childComplexity, args["id"].(string)), true
+
+	case "TrapezzaSession.groups":
+		if e.complexity.TrapezzaSession.Groups == nil {
 			break
 		}
 
-		return e.complexity.Trapezza.Id(childComplexity), true
+		return e.complexity.TrapezzaSession.Groups(childComplexity), true
 
-	case "Trapezza.lastCall":
-		if e.complexity.Trapezza.LastCall == nil {
+	case "TrapezzaSession.id":
+		if e.complexity.TrapezzaSession.Id == nil {
 			break
 		}
 
-		return e.complexity.Trapezza.LastCall(childComplexity), true
+		return e.complexity.TrapezzaSession.Id(childComplexity), true
 
-	case "Trapezza.started":
-		if e.complexity.Trapezza.Started == nil {
+	case "TrapezzaSession.lastCall":
+		if e.complexity.TrapezzaSession.LastCall == nil {
 			break
 		}
 
-		return e.complexity.Trapezza.Started(childComplexity), true
+		return e.complexity.TrapezzaSession.LastCall(childComplexity), true
 
-	case "Trapezza.waiter":
-		if e.complexity.Trapezza.Waiter == nil {
+	case "TrapezzaSession.started":
+		if e.complexity.TrapezzaSession.Started == nil {
 			break
 		}
 
-		return e.complexity.Trapezza.Waiter(childComplexity), true
+		return e.complexity.TrapezzaSession.Started(childComplexity), true
 
-	case "Update.event":
-		if e.complexity.Update.Event == nil {
+	case "TrapezzaSession.waiter":
+		if e.complexity.TrapezzaSession.Waiter == nil {
 			break
 		}
 
-		return e.complexity.Update.Event(childComplexity), true
+		return e.complexity.TrapezzaSession.Waiter(childComplexity), true
 
-	case "Update.state":
-		if e.complexity.Update.State == nil {
+	case "TrapezzaSessionUpdate.event":
+		if e.complexity.TrapezzaSessionUpdate.Event == nil {
 			break
 		}
 
-		return e.complexity.Update.State(childComplexity), true
+		return e.complexity.TrapezzaSessionUpdate.Event(childComplexity), true
 
-	case "WaiterCallEvent.client":
-		if e.complexity.WaiterCallEvent.Client == nil {
+	case "TrapezzaSessionUpdate.state":
+		if e.complexity.TrapezzaSessionUpdate.State == nil {
 			break
 		}
 
-		return e.complexity.WaiterCallEvent.Client(childComplexity), true
+		return e.complexity.TrapezzaSessionUpdate.State(childComplexity), true
 
-	case "WaiterCallEvent.message":
-		if e.complexity.WaiterCallEvent.Message == nil {
+	case "WaiterCall.client":
+		if e.complexity.WaiterCall.Client == nil {
 			break
 		}
 
-		return e.complexity.WaiterCallEvent.Message(childComplexity), true
+		return e.complexity.WaiterCall.Client(childComplexity), true
 
-	case "WaiterCallEvent.trapezza":
-		if e.complexity.WaiterCallEvent.Trapezza == nil {
+	case "WaiterCall.message":
+		if e.complexity.WaiterCall.Message == nil {
 			break
 		}
 
-		return e.complexity.WaiterCallEvent.Trapezza(childComplexity), true
-
-	case "WaiterCallEvent.type":
-		if e.complexity.WaiterCallEvent.Type == nil {
-			break
-		}
-
-		return e.complexity.WaiterCallEvent.Type(childComplexity), true
+		return e.complexity.WaiterCall.Message(childComplexity), true
 
 	}
 	return 0, false
@@ -875,34 +795,37 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 
 var parsedSchema = gqlparser.MustLoadSchema(
 	&ast.Source{Name: "../../trapezza-go/resolver/schema.graphql", Input: `type Query {
-    session(rest: String!, table: String!): Trapezza
-    sessionById(id: String!): Trapezza
+    trapezzaSession(rest: String!, table: String!): TrapezzaSession
+    trapezzaSessionByID(id: String!): TrapezzaSession
 }
 
 type Mutation {
-    new(rest: String!, table: String!): String!
-    changeWaiter(session: String!, waiter: String!): Boolean!
-    changePayer(session: String!, payer: String!): Boolean!
-    newGroup(session: String!, payer: String!): Boolean!
-    joinGroup(session: String!, client: String!, payer: String!): Boolean!
-    addItems(session: String!, client: String!, items: [String!]): Boolean!
-    removeItem(session: String!, client: String!, item: String!): Boolean!
-    splitItem(session: String!, who: String!, with: String!, item: String!): Boolean!
-    checkoutPayer(session: String!, payer: String!): Boolean!
-    checkoutClient(session: String!, client: String!): Boolean!
-    waiterCall(session: String!, client: String!, message: String!): Boolean!
+    newTrapezzaSession(rest: String!, table: String!): String!
+    endTrapezzaSession(rest: String!, table: String!): Boolean!
+    endTrapezzaSessionByID(id: String!): Boolean!
+    changeWaiter(trapezza: String!, waiter: String!): Boolean!
+    changePayer(trapezza: String!, payer: String!): Boolean!
+    newGroup(trapezza: String!, payer: String!): Boolean!
+    joinGroup(trapezza: String!, client: String!, payer: String!): Boolean!
+    addItems(trapezza: String!, client: String!, items: [String!]): Boolean!
+    removeItem(trapezza: String!, client: String!, item: String!): Boolean!
+    splitItem(trapezza: String!, who: String!, with: String!, item: String!): Boolean!
+    checkoutPayer(trapezza: String!, payer: String!): Boolean!
+    checkoutClient(trapezza: String!, client: String!): Boolean!
+    waiterCall(trapezza: String!, client: String!, message: String!): Boolean!
 }
 
 type Subscription {
-    updates(id: String!): Update
+    trapezzaSessionUpdates(id: String!): TrapezzaSessionUpdate
+    restaurantEvents(id: String!): RestaurantEvents
 }
 
-type Update {
-    state: Trapezza
-    event: Event
+type TrapezzaSessionUpdate {
+    state: TrapezzaSession
+    event: TrapezzaSessionEvents
 }
 
-type Trapezza {
+type TrapezzaSession {
     id: String!
     waiter: String!
     started: Time!
@@ -916,12 +839,6 @@ type Group {
     total: Float!
 }
 
-type GroupItem {
-    id: String!
-    price: Float!
-    groups: [Group]
-}
-
 type Client {
     id: String!
     items: [GroupItem]
@@ -929,9 +846,10 @@ type Client {
     checkedOut: Boolean!
 }
 
-type Call {
-    time: Time!
-    message: String!
+type GroupItem {
+    id: String!
+    price: Float!
+    groups: [Group]
 }
 
 type Item {
@@ -939,89 +857,69 @@ type Item {
     price: Float!
 }
 
-enum EventType {
-    ChangeWaiter
-    ChangePayer
-    NewGroup
-    JoinGroup
-    AddItems
-    RemoveItem
-    SplitItem
-    CheckoutClient
-    CheckoutPayer
-    WaiterCall
+type Call {
+    time: Time!
+    message: String!
 }
 
-interface Event {
-    type: EventType!
+type NewTrapezzaSession {
+    table: String!
     trapezza: String!
 }
 
-type ChangeWaiterEvent implements Event{
-    type: EventType!
+type EndTrapezzaSession {
+    table: String!
     trapezza: String!
+}
+
+type ChangeWaiter {
     waiter: String!
 }
 
-type ChangePayerEvent implements Event{
-    type: EventType!
-    trapezza: String!
+type ChangePayer {
     payer: String!
 }
 
-type NewGroupEvent implements Event{
-    type: EventType!
-    trapezza: String!
+type NewGroup {
     payer: String!
 }
 
-type AddItemsEvent implements Event{
-    type: EventType!
-    trapezza: String!
+type AddItems {
     client: String!
     items: [Item]
 }
 
-type RemoveItemEvent implements Event{
-    type: EventType!
-    trapezza: String!
+type RemoveItem {
     client: String!
     item: String!
 }
 
-type SplitItemEvent implements Event {
-    type: EventType!
-    trapezza: String!
+type SplitItem {
     who: String!
     with: String!
     item: String!
 }
 
-type JoinGroupEvent implements Event{
-    type: EventType!
-    trapezza: String!
+type JoinGroup {
     payer: String!
     client: String!
 }
 
-type CheckoutClientEvent implements Event {
-    type: EventType!
-    trapezza: String!
+type CheckoutClient {
     client: String!
 }
 
-type CheckoutPayerEvent implements Event {
-    type: EventType!
-    trapezza: String!
+type CheckoutPayer {
     payer: String!
 }
 
-type WaiterCallEvent implements Event {
-    type: EventType!
-    trapezza: String!
+type WaiterCall {
     client: String!
     message: String!
 }
+
+union TrapezzaSessionEvents = WaiterCall | CheckoutPayer | CheckoutClient | JoinGroup | SplitItem | RemoveItem | AddItems | NewGroup | ChangePayer | ChangeWaiter
+union RestaurantEvents = NewTrapezzaSession | EndTrapezzaSession
 
 scalar Time`},
 )
@@ -1034,13 +932,13 @@ func (ec *executionContext) field_Mutation_addItems_args(ctx context.Context, ra
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["session"]; ok {
+	if tmp, ok := rawArgs["trapezza"]; ok {
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["session"] = arg0
+	args["trapezza"] = arg0
 	var arg1 string
 	if tmp, ok := rawArgs["client"]; ok {
 		arg1, err = ec.unmarshalNString2string(ctx, tmp)
@@ -1064,13 +962,13 @@ func (ec *executionContext) field_Mutation_changePayer_args(ctx context.Context,
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["session"]; ok {
+	if tmp, ok := rawArgs["trapezza"]; ok {
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["session"] = arg0
+	args["trapezza"] = arg0
 	var arg1 string
 	if tmp, ok := rawArgs["payer"]; ok {
 		arg1, err = ec.unmarshalNString2string(ctx, tmp)
@@ -1086,13 +984,13 @@ func (ec *executionContext) field_Mutation_changeWaiter_args(ctx context.Context
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["session"]; ok {
+	if tmp, ok := rawArgs["trapezza"]; ok {
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["session"] = arg0
+	args["trapezza"] = arg0
 	var arg1 string
 	if tmp, ok := rawArgs["waiter"]; ok {
 		arg1, err = ec.unmarshalNString2string(ctx, tmp)
@@ -1108,13 +1006,13 @@ func (ec *executionContext) field_Mutation_checkoutClient_args(ctx context.Conte
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["session"]; ok {
+	if tmp, ok := rawArgs["trapezza"]; ok {
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["session"] = arg0
+	args["trapezza"] = arg0
 	var arg1 string
 	if tmp, ok := rawArgs["client"]; ok {
 		arg1, err = ec.unmarshalNString2string(ctx, tmp)
@@ -1130,13 +1028,13 @@ func (ec *executionContext) field_Mutation_checkoutPayer_args(ctx context.Contex
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["session"]; ok {
+	if tmp, ok := rawArgs["trapezza"]; ok {
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["session"] = arg0
+	args["trapezza"] = arg0
 	var arg1 string
 	if tmp, ok := rawArgs["payer"]; ok {
 		arg1, err = ec.unmarshalNString2string(ctx, tmp)
@@ -1148,17 +1046,53 @@ func (ec *executionContext) field_Mutation_checkoutPayer_args(ctx context.Contex
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_joinGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_endTrapezzaSessionByID_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["session"]; ok {
+	if tmp, ok := rawArgs["id"]; ok {
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["session"] = arg0
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_endTrapezzaSession_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["rest"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["rest"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["table"]; ok {
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["table"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_joinGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["trapezza"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["trapezza"] = arg0
 	var arg1 string
 	if tmp, ok := rawArgs["client"]; ok {
 		arg1, err = ec.unmarshalNString2string(ctx, tmp)
@@ -1182,13 +1116,13 @@ func (ec *executionContext) field_Mutation_newGroup_args(ctx context.Context, ra
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["session"]; ok {
+	if tmp, ok := rawArgs["trapezza"]; ok {
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["session"] = arg0
+	args["trapezza"] = arg0
 	var arg1 string
 	if tmp, ok := rawArgs["payer"]; ok {
 		arg1, err = ec.unmarshalNString2string(ctx, tmp)
@@ -1200,7 +1134,7 @@ func (ec *executionContext) field_Mutation_newGroup_args(ctx context.Context, ra
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_new_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_newTrapezzaSession_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -1226,13 +1160,13 @@ func (ec *executionContext) field_Mutation_removeItem_args(ctx context.Context, 
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["session"]; ok {
+	if tmp, ok := rawArgs["trapezza"]; ok {
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["session"] = arg0
+	args["trapezza"] = arg0
 	var arg1 string
 	if tmp, ok := rawArgs["client"]; ok {
 		arg1, err = ec.unmarshalNString2string(ctx, tmp)
@@ -1256,13 +1190,13 @@ func (ec *executionContext) field_Mutation_splitItem_args(ctx context.Context, r
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["session"]; ok {
+	if tmp, ok := rawArgs["trapezza"]; ok {
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["session"] = arg0
+	args["trapezza"] = arg0
 	var arg1 string
 	if tmp, ok := rawArgs["who"]; ok {
 		arg1, err = ec.unmarshalNString2string(ctx, tmp)
@@ -1294,13 +1228,13 @@ func (ec *executionContext) field_Mutation_waiterCall_args(ctx context.Context, 
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["session"]; ok {
+	if tmp, ok := rawArgs["trapezza"]; ok {
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["session"] = arg0
+	args["trapezza"] = arg0
 	var arg1 string
 	if tmp, ok := rawArgs["client"]; ok {
 		arg1, err = ec.unmarshalNString2string(ctx, tmp)
@@ -1334,7 +1268,7 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_sessionById_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_trapezzaSessionByID_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -1348,7 +1282,7 @@ func (ec *executionContext) field_Query_sessionById_args(ctx context.Context, ra
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_session_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_trapezzaSession_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -1370,7 +1304,21 @@ func (ec *executionContext) field_Query_session_args(ctx context.Context, rawArg
 	return args, nil
 }
 
-func (ec *executionContext) field_Subscription_updates_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Subscription_restaurantEvents_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Subscription_trapezzaSessionUpdates_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -1420,7 +1368,7 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _AddItemsEvent_type(ctx context.Context, field graphql.CollectedField, obj *trapezza.AddItemsEvent) (ret graphql.Marshaler) {
+func (ec *executionContext) _AddItems_client(ctx context.Context, field graphql.CollectedField, obj *trapezza.AddItemsEvent) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -1430,81 +1378,7 @@ func (ec *executionContext) _AddItemsEvent_type(ctx context.Context, field graph
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "AddItemsEvent",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Type(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(session.EventType)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNEventType2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐEventType(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _AddItemsEvent_trapezza(ctx context.Context, field graphql.CollectedField, obj *trapezza.AddItemsEvent) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "AddItemsEvent",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Trapezza(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _AddItemsEvent_client(ctx context.Context, field graphql.CollectedField, obj *trapezza.AddItemsEvent) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "AddItemsEvent",
+		Object:   "AddItems",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -1531,7 +1405,7 @@ func (ec *executionContext) _AddItemsEvent_client(ctx context.Context, field gra
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _AddItemsEvent_items(ctx context.Context, field graphql.CollectedField, obj *trapezza.AddItemsEvent) (ret graphql.Marshaler) {
+func (ec *executionContext) _AddItems_items(ctx context.Context, field graphql.CollectedField, obj *trapezza.AddItemsEvent) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -1541,7 +1415,7 @@ func (ec *executionContext) _AddItemsEvent_items(ctx context.Context, field grap
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "AddItemsEvent",
+		Object:   "AddItems",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -1639,7 +1513,7 @@ func (ec *executionContext) _Call_message(ctx context.Context, field graphql.Col
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ChangePayerEvent_type(ctx context.Context, field graphql.CollectedField, obj *trapezza.ChangePayerEvent) (ret graphql.Marshaler) {
+func (ec *executionContext) _ChangePayer_payer(ctx context.Context, field graphql.CollectedField, obj *trapezza.ChangePayerEvent) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -1649,81 +1523,7 @@ func (ec *executionContext) _ChangePayerEvent_type(ctx context.Context, field gr
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "ChangePayerEvent",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Type(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(session.EventType)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNEventType2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐEventType(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ChangePayerEvent_trapezza(ctx context.Context, field graphql.CollectedField, obj *trapezza.ChangePayerEvent) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "ChangePayerEvent",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Trapezza(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ChangePayerEvent_payer(ctx context.Context, field graphql.CollectedField, obj *trapezza.ChangePayerEvent) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "ChangePayerEvent",
+		Object:   "ChangePayer",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -1750,7 +1550,7 @@ func (ec *executionContext) _ChangePayerEvent_payer(ctx context.Context, field g
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ChangeWaiterEvent_type(ctx context.Context, field graphql.CollectedField, obj *trapezza.ChangeWaiterEvent) (ret graphql.Marshaler) {
+func (ec *executionContext) _ChangeWaiter_waiter(ctx context.Context, field graphql.CollectedField, obj *trapezza.ChangeWaiterEvent) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -1760,81 +1560,7 @@ func (ec *executionContext) _ChangeWaiterEvent_type(ctx context.Context, field g
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "ChangeWaiterEvent",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Type(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(session.EventType)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNEventType2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐEventType(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ChangeWaiterEvent_trapezza(ctx context.Context, field graphql.CollectedField, obj *trapezza.ChangeWaiterEvent) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "ChangeWaiterEvent",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Trapezza(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ChangeWaiterEvent_waiter(ctx context.Context, field graphql.CollectedField, obj *trapezza.ChangeWaiterEvent) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "ChangeWaiterEvent",
+		Object:   "ChangeWaiter",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -1861,7 +1587,7 @@ func (ec *executionContext) _ChangeWaiterEvent_waiter(ctx context.Context, field
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _CheckoutClientEvent_type(ctx context.Context, field graphql.CollectedField, obj *trapezza.CheckoutClientEvent) (ret graphql.Marshaler) {
+func (ec *executionContext) _CheckoutClient_client(ctx context.Context, field graphql.CollectedField, obj *trapezza.CheckoutClientEvent) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -1871,81 +1597,7 @@ func (ec *executionContext) _CheckoutClientEvent_type(ctx context.Context, field
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "CheckoutClientEvent",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Type(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(session.EventType)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNEventType2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐEventType(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _CheckoutClientEvent_trapezza(ctx context.Context, field graphql.CollectedField, obj *trapezza.CheckoutClientEvent) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "CheckoutClientEvent",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Trapezza(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _CheckoutClientEvent_client(ctx context.Context, field graphql.CollectedField, obj *trapezza.CheckoutClientEvent) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "CheckoutClientEvent",
+		Object:   "CheckoutClient",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -1972,7 +1624,7 @@ func (ec *executionContext) _CheckoutClientEvent_client(ctx context.Context, fie
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _CheckoutPayerEvent_type(ctx context.Context, field graphql.CollectedField, obj *trapezza.CheckoutPayerEvent) (ret graphql.Marshaler) {
+func (ec *executionContext) _CheckoutPayer_payer(ctx context.Context, field graphql.CollectedField, obj *trapezza.CheckoutPayerEvent) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -1982,81 +1634,7 @@ func (ec *executionContext) _CheckoutPayerEvent_type(ctx context.Context, field 
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "CheckoutPayerEvent",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Type(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(session.EventType)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNEventType2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐEventType(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _CheckoutPayerEvent_trapezza(ctx context.Context, field graphql.CollectedField, obj *trapezza.CheckoutPayerEvent) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "CheckoutPayerEvent",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Trapezza(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _CheckoutPayerEvent_payer(ctx context.Context, field graphql.CollectedField, obj *trapezza.CheckoutPayerEvent) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "CheckoutPayerEvent",
+		Object:   "CheckoutPayer",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -2223,6 +1801,80 @@ func (ec *executionContext) _Client_checkedOut(ctx context.Context, field graphq
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _EndTrapezzaSession_table(ctx context.Context, field graphql.CollectedField, obj *restaurant.EndTrapezzaSessionEvent) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "EndTrapezzaSession",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Table, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _EndTrapezzaSession_trapezza(ctx context.Context, field graphql.CollectedField, obj *restaurant.EndTrapezzaSessionEvent) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "EndTrapezzaSession",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Trapezza, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Group_payer(ctx context.Context, field graphql.CollectedField, obj *types.Group) (ret graphql.Marshaler) {
@@ -2515,7 +2167,7 @@ func (ec *executionContext) _Item_price(ctx context.Context, field graphql.Colle
 	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _JoinGroupEvent_type(ctx context.Context, field graphql.CollectedField, obj *trapezza.JoinGroupEvent) (ret graphql.Marshaler) {
+func (ec *executionContext) _JoinGroup_payer(ctx context.Context, field graphql.CollectedField, obj *trapezza.JoinGroupEvent) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -2525,81 +2177,7 @@ func (ec *executionContext) _JoinGroupEvent_type(ctx context.Context, field grap
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "JoinGroupEvent",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Type(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(session.EventType)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNEventType2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐEventType(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _JoinGroupEvent_trapezza(ctx context.Context, field graphql.CollectedField, obj *trapezza.JoinGroupEvent) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "JoinGroupEvent",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Trapezza(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _JoinGroupEvent_payer(ctx context.Context, field graphql.CollectedField, obj *trapezza.JoinGroupEvent) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "JoinGroupEvent",
+		Object:   "JoinGroup",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -2626,7 +2204,7 @@ func (ec *executionContext) _JoinGroupEvent_payer(ctx context.Context, field gra
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _JoinGroupEvent_client(ctx context.Context, field graphql.CollectedField, obj *trapezza.JoinGroupEvent) (ret graphql.Marshaler) {
+func (ec *executionContext) _JoinGroup_client(ctx context.Context, field graphql.CollectedField, obj *trapezza.JoinGroupEvent) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -2636,7 +2214,7 @@ func (ec *executionContext) _JoinGroupEvent_client(ctx context.Context, field gr
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "JoinGroupEvent",
+		Object:   "JoinGroup",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -2663,7 +2241,7 @@ func (ec *executionContext) _JoinGroupEvent_client(ctx context.Context, field gr
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_new(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_newTrapezzaSession(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -2680,7 +2258,7 @@ func (ec *executionContext) _Mutation_new(ctx context.Context, field graphql.Col
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_new_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_newTrapezzaSession_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -2689,7 +2267,7 @@ func (ec *executionContext) _Mutation_new(ctx context.Context, field graphql.Col
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().New(rctx, args["rest"].(string), args["table"].(string))
+		return ec.resolvers.Mutation().NewTrapezzaSession(rctx, args["rest"].(string), args["table"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2705,6 +2283,94 @@ func (ec *executionContext) _Mutation_new(ctx context.Context, field graphql.Col
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_endTrapezzaSession(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_endTrapezzaSession_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().EndTrapezzaSession(rctx, args["rest"].(string), args["table"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_endTrapezzaSessionByID(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_endTrapezzaSessionByID_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().EndTrapezzaSessionByID(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_changeWaiter(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2733,7 +2399,7 @@ func (ec *executionContext) _Mutation_changeWaiter(ctx context.Context, field gr
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ChangeWaiter(rctx, args["session"].(string), args["waiter"].(string))
+		return ec.resolvers.Mutation().ChangeWaiter(rctx, args["trapezza"].(string), args["waiter"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2777,7 +2443,7 @@ func (ec *executionContext) _Mutation_changePayer(ctx context.Context, field gra
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ChangePayer(rctx, args["session"].(string), args["payer"].(string))
+		return ec.resolvers.Mutation().ChangePayer(rctx, args["trapezza"].(string), args["payer"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2821,7 +2487,7 @@ func (ec *executionContext) _Mutation_newGroup(ctx context.Context, field graphq
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().NewGroup(rctx, args["session"].(string), args["payer"].(string))
+		return ec.resolvers.Mutation().NewGroup(rctx, args["trapezza"].(string), args["payer"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2865,7 +2531,7 @@ func (ec *executionContext) _Mutation_joinGroup(ctx context.Context, field graph
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().JoinGroup(rctx, args["session"].(string), args["client"].(string), args["payer"].(string))
+		return ec.resolvers.Mutation().JoinGroup(rctx, args["trapezza"].(string), args["client"].(string), args["payer"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2909,7 +2575,7 @@ func (ec *executionContext) _Mutation_addItems(ctx context.Context, field graphq
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddItems(rctx, args["session"].(string), args["client"].(string), args["items"].([]string))
+		return ec.resolvers.Mutation().AddItems(rctx, args["trapezza"].(string), args["client"].(string), args["items"].([]string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2953,7 +2619,7 @@ func (ec *executionContext) _Mutation_removeItem(ctx context.Context, field grap
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RemoveItem(rctx, args["session"].(string), args["client"].(string), args["item"].(string))
+		return ec.resolvers.Mutation().RemoveItem(rctx, args["trapezza"].(string), args["client"].(string), args["item"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2997,7 +2663,7 @@ func (ec *executionContext) _Mutation_splitItem(ctx context.Context, field graph
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SplitItem(rctx, args["session"].(string), args["who"].(string), args["with"].(string), args["item"].(string))
+		return ec.resolvers.Mutation().SplitItem(rctx, args["trapezza"].(string), args["who"].(string), args["with"].(string), args["item"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3041,7 +2707,7 @@ func (ec *executionContext) _Mutation_checkoutPayer(ctx context.Context, field g
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CheckoutPayer(rctx, args["session"].(string), args["payer"].(string))
+		return ec.resolvers.Mutation().CheckoutPayer(rctx, args["trapezza"].(string), args["payer"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3085,7 +2751,7 @@ func (ec *executionContext) _Mutation_checkoutClient(ctx context.Context, field 
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CheckoutClient(rctx, args["session"].(string), args["client"].(string))
+		return ec.resolvers.Mutation().CheckoutClient(rctx, args["trapezza"].(string), args["client"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3129,7 +2795,7 @@ func (ec *executionContext) _Mutation_waiterCall(ctx context.Context, field grap
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().WaiterCall(rctx, args["session"].(string), args["client"].(string), args["message"].(string))
+		return ec.resolvers.Mutation().WaiterCall(rctx, args["trapezza"].(string), args["client"].(string), args["message"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3147,7 +2813,7 @@ func (ec *executionContext) _Mutation_waiterCall(ctx context.Context, field grap
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _NewGroupEvent_type(ctx context.Context, field graphql.CollectedField, obj *trapezza.NewGroupEvent) (ret graphql.Marshaler) {
+func (ec *executionContext) _NewGroup_payer(ctx context.Context, field graphql.CollectedField, obj *trapezza.NewGroupEvent) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -3157,81 +2823,7 @@ func (ec *executionContext) _NewGroupEvent_type(ctx context.Context, field graph
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "NewGroupEvent",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Type(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(session.EventType)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNEventType2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐEventType(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _NewGroupEvent_trapezza(ctx context.Context, field graphql.CollectedField, obj *trapezza.NewGroupEvent) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "NewGroupEvent",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Trapezza(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _NewGroupEvent_payer(ctx context.Context, field graphql.CollectedField, obj *trapezza.NewGroupEvent) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "NewGroupEvent",
+		Object:   "NewGroup",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -3258,7 +2850,7 @@ func (ec *executionContext) _NewGroupEvent_payer(ctx context.Context, field grap
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_session(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _NewTrapezzaSession_table(ctx context.Context, field graphql.CollectedField, obj *restaurant.NewTrapezzaSessionEvent) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -3268,38 +2860,71 @@ func (ec *executionContext) _Query_session(ctx context.Context, field graphql.Co
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "Query",
+		Object:   "NewTrapezzaSession",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_session_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	rctx.Args = args
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Session(rctx, args["rest"].(string), args["table"].(string))
+		return obj.Table, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*types.Trapezza)
+	res := resTmp.(string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOTrapezza2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐTrapezza(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_sessionById(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _NewTrapezzaSession_trapezza(ctx context.Context, field graphql.CollectedField, obj *restaurant.NewTrapezzaSessionEvent) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "NewTrapezzaSession",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Trapezza, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_trapezzaSession(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -3316,7 +2941,7 @@ func (ec *executionContext) _Query_sessionById(ctx context.Context, field graphq
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_sessionById_args(ctx, rawArgs)
+	args, err := ec.field_Query_trapezzaSession_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -3325,7 +2950,7 @@ func (ec *executionContext) _Query_sessionById(ctx context.Context, field graphq
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SessionByID(rctx, args["id"].(string))
+		return ec.resolvers.Query().TrapezzaSession(rctx, args["rest"].(string), args["table"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3337,7 +2962,48 @@ func (ec *executionContext) _Query_sessionById(ctx context.Context, field graphq
 	res := resTmp.(*types.Trapezza)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOTrapezza2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐTrapezza(ctx, field.Selections, res)
+	return ec.marshalOTrapezzaSession2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐTrapezza(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_trapezzaSessionByID(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_trapezzaSessionByID_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().TrapezzaSessionByID(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*types.Trapezza)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOTrapezzaSession2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐTrapezza(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3415,7 +3081,7 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _RemoveItemEvent_type(ctx context.Context, field graphql.CollectedField, obj *trapezza.RemoveItemEvent) (ret graphql.Marshaler) {
+func (ec *executionContext) _RemoveItem_client(ctx context.Context, field graphql.CollectedField, obj *trapezza.RemoveItemEvent) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -3425,81 +3091,7 @@ func (ec *executionContext) _RemoveItemEvent_type(ctx context.Context, field gra
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "RemoveItemEvent",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Type(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(session.EventType)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNEventType2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐEventType(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _RemoveItemEvent_trapezza(ctx context.Context, field graphql.CollectedField, obj *trapezza.RemoveItemEvent) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "RemoveItemEvent",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Trapezza(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _RemoveItemEvent_client(ctx context.Context, field graphql.CollectedField, obj *trapezza.RemoveItemEvent) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "RemoveItemEvent",
+		Object:   "RemoveItem",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -3526,7 +3118,7 @@ func (ec *executionContext) _RemoveItemEvent_client(ctx context.Context, field g
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _RemoveItemEvent_item(ctx context.Context, field graphql.CollectedField, obj *trapezza.RemoveItemEvent) (ret graphql.Marshaler) {
+func (ec *executionContext) _RemoveItem_item(ctx context.Context, field graphql.CollectedField, obj *trapezza.RemoveItemEvent) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -3536,7 +3128,7 @@ func (ec *executionContext) _RemoveItemEvent_item(ctx context.Context, field gra
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "RemoveItemEvent",
+		Object:   "RemoveItem",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -3563,7 +3155,7 @@ func (ec *executionContext) _RemoveItemEvent_item(ctx context.Context, field gra
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _SplitItemEvent_type(ctx context.Context, field graphql.CollectedField, obj *trapezza.SplitItemEvent) (ret graphql.Marshaler) {
+func (ec *executionContext) _SplitItem_who(ctx context.Context, field graphql.CollectedField, obj *trapezza.SplitItemEvent) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -3573,81 +3165,7 @@ func (ec *executionContext) _SplitItemEvent_type(ctx context.Context, field grap
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "SplitItemEvent",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Type(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(session.EventType)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNEventType2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐEventType(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _SplitItemEvent_trapezza(ctx context.Context, field graphql.CollectedField, obj *trapezza.SplitItemEvent) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "SplitItemEvent",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Trapezza(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _SplitItemEvent_who(ctx context.Context, field graphql.CollectedField, obj *trapezza.SplitItemEvent) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "SplitItemEvent",
+		Object:   "SplitItem",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -3674,7 +3192,7 @@ func (ec *executionContext) _SplitItemEvent_who(ctx context.Context, field graph
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _SplitItemEvent_with(ctx context.Context, field graphql.CollectedField, obj *trapezza.SplitItemEvent) (ret graphql.Marshaler) {
+func (ec *executionContext) _SplitItem_with(ctx context.Context, field graphql.CollectedField, obj *trapezza.SplitItemEvent) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -3684,7 +3202,7 @@ func (ec *executionContext) _SplitItemEvent_with(ctx context.Context, field grap
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "SplitItemEvent",
+		Object:   "SplitItem",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -3711,7 +3229,7 @@ func (ec *executionContext) _SplitItemEvent_with(ctx context.Context, field grap
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _SplitItemEvent_item(ctx context.Context, field graphql.CollectedField, obj *trapezza.SplitItemEvent) (ret graphql.Marshaler) {
+func (ec *executionContext) _SplitItem_item(ctx context.Context, field graphql.CollectedField, obj *trapezza.SplitItemEvent) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -3721,7 +3239,7 @@ func (ec *executionContext) _SplitItemEvent_item(ctx context.Context, field grap
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "SplitItemEvent",
+		Object:   "SplitItem",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -3748,7 +3266,7 @@ func (ec *executionContext) _SplitItemEvent_item(ctx context.Context, field grap
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Subscription_updates(ctx context.Context, field graphql.CollectedField) (ret func() graphql.Marshaler) {
+func (ec *executionContext) _Subscription_trapezzaSessionUpdates(ctx context.Context, field graphql.CollectedField) (ret func() graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -3765,7 +3283,7 @@ func (ec *executionContext) _Subscription_updates(ctx context.Context, field gra
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Subscription_updates_args(ctx, rawArgs)
+	args, err := ec.field_Subscription_trapezzaSessionUpdates_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return nil
@@ -3774,7 +3292,7 @@ func (ec *executionContext) _Subscription_updates(ctx context.Context, field gra
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Subscription().Updates(rctx, args["id"].(string))
+		return ec.resolvers.Subscription().TrapezzaSessionUpdates(rctx, args["id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3792,13 +3310,63 @@ func (ec *executionContext) _Subscription_updates(ctx context.Context, field gra
 			w.Write([]byte{'{'})
 			graphql.MarshalString(field.Alias).MarshalGQL(w)
 			w.Write([]byte{':'})
-			ec.marshalOUpdate2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtrapezzaᚐUpdate(ctx, field.Selections, res).MarshalGQL(w)
+			ec.marshalOTrapezzaSessionUpdate2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtrapezzaᚐUpdate(ctx, field.Selections, res).MarshalGQL(w)
 			w.Write([]byte{'}'})
 		})
 	}
 }
 
-func (ec *executionContext) _Trapezza_id(ctx context.Context, field graphql.CollectedField, obj *types.Trapezza) (ret graphql.Marshaler) {
+func (ec *executionContext) _Subscription_restaurantEvents(ctx context.Context, field graphql.CollectedField) (ret func() graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = nil
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Subscription",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Subscription_restaurantEvents_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Subscription().RestaurantEvents(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	if resTmp == nil {
+		return nil
+	}
+	return func() graphql.Marshaler {
+		res, ok := <-resTmp.(<-chan restaurant.Event)
+		if !ok {
+			return nil
+		}
+		return graphql.WriterFunc(func(w io.Writer) {
+			w.Write([]byte{'{'})
+			graphql.MarshalString(field.Alias).MarshalGQL(w)
+			w.Write([]byte{':'})
+			ec.marshalORestaurantEvents2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋrestaurantᚐEvent(ctx, field.Selections, res).MarshalGQL(w)
+			w.Write([]byte{'}'})
+		})
+	}
+}
+
+func (ec *executionContext) _TrapezzaSession_id(ctx context.Context, field graphql.CollectedField, obj *types.Trapezza) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -3808,7 +3376,7 @@ func (ec *executionContext) _Trapezza_id(ctx context.Context, field graphql.Coll
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "Trapezza",
+		Object:   "TrapezzaSession",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -3835,7 +3403,7 @@ func (ec *executionContext) _Trapezza_id(ctx context.Context, field graphql.Coll
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Trapezza_waiter(ctx context.Context, field graphql.CollectedField, obj *types.Trapezza) (ret graphql.Marshaler) {
+func (ec *executionContext) _TrapezzaSession_waiter(ctx context.Context, field graphql.CollectedField, obj *types.Trapezza) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -3845,7 +3413,7 @@ func (ec *executionContext) _Trapezza_waiter(ctx context.Context, field graphql.
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "Trapezza",
+		Object:   "TrapezzaSession",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -3872,7 +3440,7 @@ func (ec *executionContext) _Trapezza_waiter(ctx context.Context, field graphql.
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Trapezza_started(ctx context.Context, field graphql.CollectedField, obj *types.Trapezza) (ret graphql.Marshaler) {
+func (ec *executionContext) _TrapezzaSession_started(ctx context.Context, field graphql.CollectedField, obj *types.Trapezza) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -3882,7 +3450,7 @@ func (ec *executionContext) _Trapezza_started(ctx context.Context, field graphql
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "Trapezza",
+		Object:   "TrapezzaSession",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -3909,7 +3477,7 @@ func (ec *executionContext) _Trapezza_started(ctx context.Context, field graphql
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Trapezza_lastCall(ctx context.Context, field graphql.CollectedField, obj *types.Trapezza) (ret graphql.Marshaler) {
+func (ec *executionContext) _TrapezzaSession_lastCall(ctx context.Context, field graphql.CollectedField, obj *types.Trapezza) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -3919,7 +3487,7 @@ func (ec *executionContext) _Trapezza_lastCall(ctx context.Context, field graphq
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "Trapezza",
+		Object:   "TrapezzaSession",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -3946,7 +3514,7 @@ func (ec *executionContext) _Trapezza_lastCall(ctx context.Context, field graphq
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Trapezza_groups(ctx context.Context, field graphql.CollectedField, obj *types.Trapezza) (ret graphql.Marshaler) {
+func (ec *executionContext) _TrapezzaSession_groups(ctx context.Context, field graphql.CollectedField, obj *types.Trapezza) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -3956,7 +3524,7 @@ func (ec *executionContext) _Trapezza_groups(ctx context.Context, field graphql.
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "Trapezza",
+		Object:   "TrapezzaSession",
 		Field:    field,
 		Args:     nil,
 		IsMethod: true,
@@ -3980,7 +3548,7 @@ func (ec *executionContext) _Trapezza_groups(ctx context.Context, field graphql.
 	return ec.marshalOGroup2ᚕᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐGroup(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Update_state(ctx context.Context, field graphql.CollectedField, obj *trapezza.Update) (ret graphql.Marshaler) {
+func (ec *executionContext) _TrapezzaSessionUpdate_state(ctx context.Context, field graphql.CollectedField, obj *trapezza.Update) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -3990,7 +3558,7 @@ func (ec *executionContext) _Update_state(ctx context.Context, field graphql.Col
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "Update",
+		Object:   "TrapezzaSessionUpdate",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -4011,10 +3579,10 @@ func (ec *executionContext) _Update_state(ctx context.Context, field graphql.Col
 	res := resTmp.(*types.Trapezza)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOTrapezza2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐTrapezza(ctx, field.Selections, res)
+	return ec.marshalOTrapezzaSession2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐTrapezza(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Update_event(ctx context.Context, field graphql.CollectedField, obj *trapezza.Update) (ret graphql.Marshaler) {
+func (ec *executionContext) _TrapezzaSessionUpdate_event(ctx context.Context, field graphql.CollectedField, obj *trapezza.Update) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -4024,7 +3592,7 @@ func (ec *executionContext) _Update_event(ctx context.Context, field graphql.Col
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "Update",
+		Object:   "TrapezzaSessionUpdate",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -4045,10 +3613,10 @@ func (ec *executionContext) _Update_event(ctx context.Context, field graphql.Col
 	res := resTmp.(trapezza.Event)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOEvent2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtrapezzaᚐEvent(ctx, field.Selections, res)
+	return ec.marshalOTrapezzaSessionEvents2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtrapezzaᚐEvent(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _WaiterCallEvent_type(ctx context.Context, field graphql.CollectedField, obj *trapezza.WaiterCallEvent) (ret graphql.Marshaler) {
+func (ec *executionContext) _WaiterCall_client(ctx context.Context, field graphql.CollectedField, obj *trapezza.WaiterCallEvent) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -4058,81 +3626,7 @@ func (ec *executionContext) _WaiterCallEvent_type(ctx context.Context, field gra
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "WaiterCallEvent",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Type(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(session.EventType)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNEventType2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐEventType(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _WaiterCallEvent_trapezza(ctx context.Context, field graphql.CollectedField, obj *trapezza.WaiterCallEvent) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "WaiterCallEvent",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Trapezza(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _WaiterCallEvent_client(ctx context.Context, field graphql.CollectedField, obj *trapezza.WaiterCallEvent) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "WaiterCallEvent",
+		Object:   "WaiterCall",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -4159,7 +3653,7 @@ func (ec *executionContext) _WaiterCallEvent_client(ctx context.Context, field g
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _WaiterCallEvent_message(ctx context.Context, field graphql.CollectedField, obj *trapezza.WaiterCallEvent) (ret graphql.Marshaler) {
+func (ec *executionContext) _WaiterCall_message(ctx context.Context, field graphql.CollectedField, obj *trapezza.WaiterCallEvent) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -4169,7 +3663,7 @@ func (ec *executionContext) _WaiterCallEvent_message(ctx context.Context, field 
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "WaiterCallEvent",
+		Object:   "WaiterCall",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -5351,30 +4845,43 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    ************************** interface.gotpl ***************************
 
-func (ec *executionContext) _Event(ctx context.Context, sel ast.SelectionSet, obj trapezza.Event) graphql.Marshaler {
+func (ec *executionContext) _RestaurantEvents(ctx context.Context, sel ast.SelectionSet, obj restaurant.Event) graphql.Marshaler {
 	switch obj := (obj).(type) {
 	case nil:
 		return graphql.Null
-	case *trapezza.ChangeWaiterEvent:
-		return ec._ChangeWaiterEvent(ctx, sel, obj)
-	case *trapezza.ChangePayerEvent:
-		return ec._ChangePayerEvent(ctx, sel, obj)
-	case *trapezza.NewGroupEvent:
-		return ec._NewGroupEvent(ctx, sel, obj)
-	case *trapezza.AddItemsEvent:
-		return ec._AddItemsEvent(ctx, sel, obj)
-	case *trapezza.RemoveItemEvent:
-		return ec._RemoveItemEvent(ctx, sel, obj)
-	case *trapezza.SplitItemEvent:
-		return ec._SplitItemEvent(ctx, sel, obj)
-	case *trapezza.JoinGroupEvent:
-		return ec._JoinGroupEvent(ctx, sel, obj)
-	case *trapezza.CheckoutClientEvent:
-		return ec._CheckoutClientEvent(ctx, sel, obj)
-	case *trapezza.CheckoutPayerEvent:
-		return ec._CheckoutPayerEvent(ctx, sel, obj)
+	case *restaurant.NewTrapezzaSessionEvent:
+		return ec._NewTrapezzaSession(ctx, sel, obj)
+	case *restaurant.EndTrapezzaSessionEvent:
+		return ec._EndTrapezzaSession(ctx, sel, obj)
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
+func (ec *executionContext) _TrapezzaSessionEvents(ctx context.Context, sel ast.SelectionSet, obj trapezza.Event) graphql.Marshaler {
+	switch obj := (obj).(type) {
+	case nil:
+		return graphql.Null
 	case *trapezza.WaiterCallEvent:
-		return ec._WaiterCallEvent(ctx, sel, obj)
+		return ec._WaiterCall(ctx, sel, obj)
+	case *trapezza.CheckoutPayerEvent:
+		return ec._CheckoutPayer(ctx, sel, obj)
+	case *trapezza.CheckoutClientEvent:
+		return ec._CheckoutClient(ctx, sel, obj)
+	case *trapezza.JoinGroupEvent:
+		return ec._JoinGroup(ctx, sel, obj)
+	case *trapezza.SplitItemEvent:
+		return ec._SplitItem(ctx, sel, obj)
+	case *trapezza.RemoveItemEvent:
+		return ec._RemoveItem(ctx, sel, obj)
+	case *trapezza.AddItemsEvent:
+		return ec._AddItems(ctx, sel, obj)
+	case *trapezza.NewGroupEvent:
+		return ec._NewGroup(ctx, sel, obj)
+	case *trapezza.ChangePayerEvent:
+		return ec._ChangePayer(ctx, sel, obj)
+	case *trapezza.ChangeWaiterEvent:
+		return ec._ChangeWaiter(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -5384,34 +4891,24 @@ func (ec *executionContext) _Event(ctx context.Context, sel ast.SelectionSet, ob
 
 // region    **************************** object.gotpl ****************************
 
-var addItemsEventImplementors = []string{"AddItemsEvent", "Event"}
+var addItemsImplementors = []string{"AddItems", "TrapezzaSessionEvents"}
 
-func (ec *executionContext) _AddItemsEvent(ctx context.Context, sel ast.SelectionSet, obj *trapezza.AddItemsEvent) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.RequestContext, sel, addItemsEventImplementors)
+func (ec *executionContext) _AddItems(ctx context.Context, sel ast.SelectionSet, obj *trapezza.AddItemsEvent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, addItemsImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("AddItemsEvent")
-		case "type":
-			out.Values[i] = ec._AddItemsEvent_type(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "trapezza":
-			out.Values[i] = ec._AddItemsEvent_trapezza(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			out.Values[i] = graphql.MarshalString("AddItems")
 		case "client":
-			out.Values[i] = ec._AddItemsEvent_client(ctx, field, obj)
+			out.Values[i] = ec._AddItems_client(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "items":
-			out.Values[i] = ec._AddItemsEvent_items(ctx, field, obj)
+			out.Values[i] = ec._AddItems_items(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5455,29 +4952,19 @@ func (ec *executionContext) _Call(ctx context.Context, sel ast.SelectionSet, obj
 	return out
 }
 
-var changePayerEventImplementors = []string{"ChangePayerEvent", "Event"}
+var changePayerImplementors = []string{"ChangePayer", "TrapezzaSessionEvents"}
 
-func (ec *executionContext) _ChangePayerEvent(ctx context.Context, sel ast.SelectionSet, obj *trapezza.ChangePayerEvent) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.RequestContext, sel, changePayerEventImplementors)
+func (ec *executionContext) _ChangePayer(ctx context.Context, sel ast.SelectionSet, obj *trapezza.ChangePayerEvent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, changePayerImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("ChangePayerEvent")
-		case "type":
-			out.Values[i] = ec._ChangePayerEvent_type(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "trapezza":
-			out.Values[i] = ec._ChangePayerEvent_trapezza(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			out.Values[i] = graphql.MarshalString("ChangePayer")
 		case "payer":
-			out.Values[i] = ec._ChangePayerEvent_payer(ctx, field, obj)
+			out.Values[i] = ec._ChangePayer_payer(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -5492,29 +4979,19 @@ func (ec *executionContext) _ChangePayerEvent(ctx context.Context, sel ast.Selec
 	return out
 }
 
-var changeWaiterEventImplementors = []string{"ChangeWaiterEvent", "Event"}
+var changeWaiterImplementors = []string{"ChangeWaiter", "TrapezzaSessionEvents"}
 
-func (ec *executionContext) _ChangeWaiterEvent(ctx context.Context, sel ast.SelectionSet, obj *trapezza.ChangeWaiterEvent) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.RequestContext, sel, changeWaiterEventImplementors)
+func (ec *executionContext) _ChangeWaiter(ctx context.Context, sel ast.SelectionSet, obj *trapezza.ChangeWaiterEvent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, changeWaiterImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("ChangeWaiterEvent")
-		case "type":
-			out.Values[i] = ec._ChangeWaiterEvent_type(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "trapezza":
-			out.Values[i] = ec._ChangeWaiterEvent_trapezza(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			out.Values[i] = graphql.MarshalString("ChangeWaiter")
 		case "waiter":
-			out.Values[i] = ec._ChangeWaiterEvent_waiter(ctx, field, obj)
+			out.Values[i] = ec._ChangeWaiter_waiter(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -5529,29 +5006,19 @@ func (ec *executionContext) _ChangeWaiterEvent(ctx context.Context, sel ast.Sele
 	return out
 }
 
-var checkoutClientEventImplementors = []string{"CheckoutClientEvent", "Event"}
+var checkoutClientImplementors = []string{"CheckoutClient", "TrapezzaSessionEvents"}
 
-func (ec *executionContext) _CheckoutClientEvent(ctx context.Context, sel ast.SelectionSet, obj *trapezza.CheckoutClientEvent) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.RequestContext, sel, checkoutClientEventImplementors)
+func (ec *executionContext) _CheckoutClient(ctx context.Context, sel ast.SelectionSet, obj *trapezza.CheckoutClientEvent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, checkoutClientImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("CheckoutClientEvent")
-		case "type":
-			out.Values[i] = ec._CheckoutClientEvent_type(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "trapezza":
-			out.Values[i] = ec._CheckoutClientEvent_trapezza(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			out.Values[i] = graphql.MarshalString("CheckoutClient")
 		case "client":
-			out.Values[i] = ec._CheckoutClientEvent_client(ctx, field, obj)
+			out.Values[i] = ec._CheckoutClient_client(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -5566,29 +5033,19 @@ func (ec *executionContext) _CheckoutClientEvent(ctx context.Context, sel ast.Se
 	return out
 }
 
-var checkoutPayerEventImplementors = []string{"CheckoutPayerEvent", "Event"}
+var checkoutPayerImplementors = []string{"CheckoutPayer", "TrapezzaSessionEvents"}
 
-func (ec *executionContext) _CheckoutPayerEvent(ctx context.Context, sel ast.SelectionSet, obj *trapezza.CheckoutPayerEvent) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.RequestContext, sel, checkoutPayerEventImplementors)
+func (ec *executionContext) _CheckoutPayer(ctx context.Context, sel ast.SelectionSet, obj *trapezza.CheckoutPayerEvent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, checkoutPayerImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("CheckoutPayerEvent")
-		case "type":
-			out.Values[i] = ec._CheckoutPayerEvent_type(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "trapezza":
-			out.Values[i] = ec._CheckoutPayerEvent_trapezza(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			out.Values[i] = graphql.MarshalString("CheckoutPayer")
 		case "payer":
-			out.Values[i] = ec._CheckoutPayerEvent_payer(ctx, field, obj)
+			out.Values[i] = ec._CheckoutPayer_payer(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -5625,6 +5082,38 @@ func (ec *executionContext) _Client(ctx context.Context, sel ast.SelectionSet, o
 			out.Values[i] = ec._Client_calls(ctx, field, obj)
 		case "checkedOut":
 			out.Values[i] = ec._Client_checkedOut(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var endTrapezzaSessionImplementors = []string{"EndTrapezzaSession", "RestaurantEvents"}
+
+func (ec *executionContext) _EndTrapezzaSession(ctx context.Context, sel ast.SelectionSet, obj *restaurant.EndTrapezzaSessionEvent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, endTrapezzaSessionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("EndTrapezzaSession")
+		case "table":
+			out.Values[i] = ec._EndTrapezzaSession_table(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "trapezza":
+			out.Values[i] = ec._EndTrapezzaSession_trapezza(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -5739,34 +5228,24 @@ func (ec *executionContext) _Item(ctx context.Context, sel ast.SelectionSet, obj
 	return out
 }
 
-var joinGroupEventImplementors = []string{"JoinGroupEvent", "Event"}
+var joinGroupImplementors = []string{"JoinGroup", "TrapezzaSessionEvents"}
 
-func (ec *executionContext) _JoinGroupEvent(ctx context.Context, sel ast.SelectionSet, obj *trapezza.JoinGroupEvent) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.RequestContext, sel, joinGroupEventImplementors)
+func (ec *executionContext) _JoinGroup(ctx context.Context, sel ast.SelectionSet, obj *trapezza.JoinGroupEvent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, joinGroupImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("JoinGroupEvent")
-		case "type":
-			out.Values[i] = ec._JoinGroupEvent_type(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "trapezza":
-			out.Values[i] = ec._JoinGroupEvent_trapezza(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			out.Values[i] = graphql.MarshalString("JoinGroup")
 		case "payer":
-			out.Values[i] = ec._JoinGroupEvent_payer(ctx, field, obj)
+			out.Values[i] = ec._JoinGroup_payer(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "client":
-			out.Values[i] = ec._JoinGroupEvent_client(ctx, field, obj)
+			out.Values[i] = ec._JoinGroup_client(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -5796,8 +5275,18 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
-		case "new":
-			out.Values[i] = ec._Mutation_new(ctx, field)
+		case "newTrapezzaSession":
+			out.Values[i] = ec._Mutation_newTrapezzaSession(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "endTrapezzaSession":
+			out.Values[i] = ec._Mutation_endTrapezzaSession(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "endTrapezzaSessionByID":
+			out.Values[i] = ec._Mutation_endTrapezzaSessionByID(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -5862,29 +5351,51 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 	return out
 }
 
-var newGroupEventImplementors = []string{"NewGroupEvent", "Event"}
+var newGroupImplementors = []string{"NewGroup", "TrapezzaSessionEvents"}
 
-func (ec *executionContext) _NewGroupEvent(ctx context.Context, sel ast.SelectionSet, obj *trapezza.NewGroupEvent) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.RequestContext, sel, newGroupEventImplementors)
+func (ec *executionContext) _NewGroup(ctx context.Context, sel ast.SelectionSet, obj *trapezza.NewGroupEvent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, newGroupImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("NewGroupEvent")
-		case "type":
-			out.Values[i] = ec._NewGroupEvent_type(ctx, field, obj)
+			out.Values[i] = graphql.MarshalString("NewGroup")
+		case "payer":
+			out.Values[i] = ec._NewGroup_payer(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var newTrapezzaSessionImplementors = []string{"NewTrapezzaSession", "RestaurantEvents"}
+
+func (ec *executionContext) _NewTrapezzaSession(ctx context.Context, sel ast.SelectionSet, obj *restaurant.NewTrapezzaSessionEvent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, newTrapezzaSessionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("NewTrapezzaSession")
+		case "table":
+			out.Values[i] = ec._NewTrapezzaSession_table(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "trapezza":
-			out.Values[i] = ec._NewGroupEvent_trapezza(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "payer":
-			out.Values[i] = ec._NewGroupEvent_payer(ctx, field, obj)
+			out.Values[i] = ec._NewTrapezzaSession_trapezza(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -5914,7 +5425,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
-		case "session":
+		case "trapezzaSession":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -5922,10 +5433,10 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_session(ctx, field)
+				res = ec._Query_trapezzaSession(ctx, field)
 				return res
 			})
-		case "sessionById":
+		case "trapezzaSessionByID":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -5933,7 +5444,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_sessionById(ctx, field)
+				res = ec._Query_trapezzaSessionByID(ctx, field)
 				return res
 			})
 		case "__type":
@@ -5951,34 +5462,24 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 	return out
 }
 
-var removeItemEventImplementors = []string{"RemoveItemEvent", "Event"}
+var removeItemImplementors = []string{"RemoveItem", "TrapezzaSessionEvents"}
 
-func (ec *executionContext) _RemoveItemEvent(ctx context.Context, sel ast.SelectionSet, obj *trapezza.RemoveItemEvent) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.RequestContext, sel, removeItemEventImplementors)
+func (ec *executionContext) _RemoveItem(ctx context.Context, sel ast.SelectionSet, obj *trapezza.RemoveItemEvent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, removeItemImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("RemoveItemEvent")
-		case "type":
-			out.Values[i] = ec._RemoveItemEvent_type(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "trapezza":
-			out.Values[i] = ec._RemoveItemEvent_trapezza(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			out.Values[i] = graphql.MarshalString("RemoveItem")
 		case "client":
-			out.Values[i] = ec._RemoveItemEvent_client(ctx, field, obj)
+			out.Values[i] = ec._RemoveItem_client(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "item":
-			out.Values[i] = ec._RemoveItemEvent_item(ctx, field, obj)
+			out.Values[i] = ec._RemoveItem_item(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -5993,39 +5494,29 @@ func (ec *executionContext) _RemoveItemEvent(ctx context.Context, sel ast.Select
 	return out
 }
 
-var splitItemEventImplementors = []string{"SplitItemEvent", "Event"}
+var splitItemImplementors = []string{"SplitItem", "TrapezzaSessionEvents"}
 
-func (ec *executionContext) _SplitItemEvent(ctx context.Context, sel ast.SelectionSet, obj *trapezza.SplitItemEvent) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.RequestContext, sel, splitItemEventImplementors)
+func (ec *executionContext) _SplitItem(ctx context.Context, sel ast.SelectionSet, obj *trapezza.SplitItemEvent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, splitItemImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("SplitItemEvent")
-		case "type":
-			out.Values[i] = ec._SplitItemEvent_type(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "trapezza":
-			out.Values[i] = ec._SplitItemEvent_trapezza(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			out.Values[i] = graphql.MarshalString("SplitItem")
 		case "who":
-			out.Values[i] = ec._SplitItemEvent_who(ctx, field, obj)
+			out.Values[i] = ec._SplitItem_who(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "with":
-			out.Values[i] = ec._SplitItemEvent_with(ctx, field, obj)
+			out.Values[i] = ec._SplitItem_with(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "item":
-			out.Values[i] = ec._SplitItemEvent_item(ctx, field, obj)
+			out.Values[i] = ec._SplitItem_item(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -6053,46 +5544,48 @@ func (ec *executionContext) _Subscription(ctx context.Context, sel ast.Selection
 	}
 
 	switch fields[0].Name {
-	case "updates":
-		return ec._Subscription_updates(ctx, fields[0])
+	case "trapezzaSessionUpdates":
+		return ec._Subscription_trapezzaSessionUpdates(ctx, fields[0])
+	case "restaurantEvents":
+		return ec._Subscription_restaurantEvents(ctx, fields[0])
 	default:
 		panic("unknown field " + strconv.Quote(fields[0].Name))
 	}
 }
 
-var trapezzaImplementors = []string{"Trapezza"}
+var trapezzaSessionImplementors = []string{"TrapezzaSession"}
 
-func (ec *executionContext) _Trapezza(ctx context.Context, sel ast.SelectionSet, obj *types.Trapezza) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.RequestContext, sel, trapezzaImplementors)
+func (ec *executionContext) _TrapezzaSession(ctx context.Context, sel ast.SelectionSet, obj *types.Trapezza) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, trapezzaSessionImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("Trapezza")
+			out.Values[i] = graphql.MarshalString("TrapezzaSession")
 		case "id":
-			out.Values[i] = ec._Trapezza_id(ctx, field, obj)
+			out.Values[i] = ec._TrapezzaSession_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "waiter":
-			out.Values[i] = ec._Trapezza_waiter(ctx, field, obj)
+			out.Values[i] = ec._TrapezzaSession_waiter(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "started":
-			out.Values[i] = ec._Trapezza_started(ctx, field, obj)
+			out.Values[i] = ec._TrapezzaSession_started(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "lastCall":
-			out.Values[i] = ec._Trapezza_lastCall(ctx, field, obj)
+			out.Values[i] = ec._TrapezzaSession_lastCall(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "groups":
-			out.Values[i] = ec._Trapezza_groups(ctx, field, obj)
+			out.Values[i] = ec._TrapezzaSession_groups(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6104,21 +5597,21 @@ func (ec *executionContext) _Trapezza(ctx context.Context, sel ast.SelectionSet,
 	return out
 }
 
-var updateImplementors = []string{"Update"}
+var trapezzaSessionUpdateImplementors = []string{"TrapezzaSessionUpdate"}
 
-func (ec *executionContext) _Update(ctx context.Context, sel ast.SelectionSet, obj *trapezza.Update) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.RequestContext, sel, updateImplementors)
+func (ec *executionContext) _TrapezzaSessionUpdate(ctx context.Context, sel ast.SelectionSet, obj *trapezza.Update) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, trapezzaSessionUpdateImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("Update")
+			out.Values[i] = graphql.MarshalString("TrapezzaSessionUpdate")
 		case "state":
-			out.Values[i] = ec._Update_state(ctx, field, obj)
+			out.Values[i] = ec._TrapezzaSessionUpdate_state(ctx, field, obj)
 		case "event":
-			out.Values[i] = ec._Update_event(ctx, field, obj)
+			out.Values[i] = ec._TrapezzaSessionUpdate_event(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6130,34 +5623,24 @@ func (ec *executionContext) _Update(ctx context.Context, sel ast.SelectionSet, o
 	return out
 }
 
-var waiterCallEventImplementors = []string{"WaiterCallEvent", "Event"}
+var waiterCallImplementors = []string{"WaiterCall", "TrapezzaSessionEvents"}
 
-func (ec *executionContext) _WaiterCallEvent(ctx context.Context, sel ast.SelectionSet, obj *trapezza.WaiterCallEvent) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.RequestContext, sel, waiterCallEventImplementors)
+func (ec *executionContext) _WaiterCall(ctx context.Context, sel ast.SelectionSet, obj *trapezza.WaiterCallEvent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, waiterCallImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("WaiterCallEvent")
-		case "type":
-			out.Values[i] = ec._WaiterCallEvent_type(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "trapezza":
-			out.Values[i] = ec._WaiterCallEvent_trapezza(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			out.Values[i] = graphql.MarshalString("WaiterCall")
 		case "client":
-			out.Values[i] = ec._WaiterCallEvent_client(ctx, field, obj)
+			out.Values[i] = ec._WaiterCall_client(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
 		case "message":
-			out.Values[i] = ec._WaiterCallEvent_message(ctx, field, obj)
+			out.Values[i] = ec._WaiterCall_message(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -6423,21 +5906,6 @@ func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interf
 
 func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.SelectionSet, v bool) graphql.Marshaler {
 	res := graphql.MarshalBoolean(v)
-	if res == graphql.Null {
-		if !ec.HasError(graphql.GetResolverContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
-}
-
-func (ec *executionContext) unmarshalNEventType2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐEventType(ctx context.Context, v interface{}) (session.EventType, error) {
-	tmp, err := graphql.UnmarshalString(v)
-	return session.EventType(tmp), err
-}
-
-func (ec *executionContext) marshalNEventType2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋsessionᚐEventType(ctx context.Context, sel ast.SelectionSet, v session.EventType) graphql.Marshaler {
-	res := graphql.MarshalString(string(v))
 	if res == graphql.Null {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -6839,13 +6307,6 @@ func (ec *executionContext) marshalOClient2ᚖgithubᚗcomᚋWondertanᚋtrapezz
 	return ec._Client(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOEvent2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtrapezzaᚐEvent(ctx context.Context, sel ast.SelectionSet, v trapezza.Event) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Event(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalOGroup2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐGroup(ctx context.Context, sel ast.SelectionSet, v types.Group) graphql.Marshaler {
 	return ec._Group(ctx, sel, &v)
 }
@@ -6999,6 +6460,13 @@ func (ec *executionContext) marshalOItem2ᚖgithubᚗcomᚋWondertanᚋtrapezza�
 	return ec._Item(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalORestaurantEvents2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋrestaurantᚐEvent(ctx context.Context, sel ast.SelectionSet, v restaurant.Event) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._RestaurantEvents(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {
 	return graphql.UnmarshalString(v)
 }
@@ -7054,26 +6522,33 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return ec.marshalOString2string(ctx, sel, *v)
 }
 
-func (ec *executionContext) marshalOTrapezza2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐTrapezza(ctx context.Context, sel ast.SelectionSet, v types.Trapezza) graphql.Marshaler {
-	return ec._Trapezza(ctx, sel, &v)
+func (ec *executionContext) marshalOTrapezzaSession2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐTrapezza(ctx context.Context, sel ast.SelectionSet, v types.Trapezza) graphql.Marshaler {
+	return ec._TrapezzaSession(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOTrapezza2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐTrapezza(ctx context.Context, sel ast.SelectionSet, v *types.Trapezza) graphql.Marshaler {
+func (ec *executionContext) marshalOTrapezzaSession2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtypesᚐTrapezza(ctx context.Context, sel ast.SelectionSet, v *types.Trapezza) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	return ec._Trapezza(ctx, sel, v)
+	return ec._TrapezzaSession(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOUpdate2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtrapezzaᚐUpdate(ctx context.Context, sel ast.SelectionSet, v trapezza.Update) graphql.Marshaler {
-	return ec._Update(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOUpdate2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtrapezzaᚐUpdate(ctx context.Context, sel ast.SelectionSet, v *trapezza.Update) graphql.Marshaler {
+func (ec *executionContext) marshalOTrapezzaSessionEvents2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtrapezzaᚐEvent(ctx context.Context, sel ast.SelectionSet, v trapezza.Event) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	return ec._Update(ctx, sel, v)
+	return ec._TrapezzaSessionEvents(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOTrapezzaSessionUpdate2githubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtrapezzaᚐUpdate(ctx context.Context, sel ast.SelectionSet, v trapezza.Update) graphql.Marshaler {
+	return ec._TrapezzaSessionUpdate(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOTrapezzaSessionUpdate2ᚖgithubᚗcomᚋWondertanᚋtrapezzaᚑgoᚋtrapezzaᚐUpdate(ctx context.Context, sel ast.SelectionSet, v *trapezza.Update) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._TrapezzaSessionUpdate(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValue(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

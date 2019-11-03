@@ -9,8 +9,31 @@ import (
 
 type mutation Resolver
 
-func (m *mutation) New(_ context.Context, rest string, table string) (string, error) {
-	return m.trapezza.NewSession(rest, table)
+func (m *mutation) NewTrapezzaSession(_ context.Context, rest, table string) (string, error) {
+	s, err := m.restaurant.NewTrapezzaSession(rest, table)
+	if err != nil {
+		return "", err
+	}
+
+	return s.ID(), nil
+}
+
+func (m *mutation) EndTrapezzaSession(_ context.Context, rest, table string) (bool, error) {
+	err := m.restaurant.EndTrapezzaSession(rest, table)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (m *mutation) EndTrapezzaSessionByID(_ context.Context, id string) (bool, error) {
+	err := m.trapezza.EndSession(id)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 func (m *mutation) ChangeWaiter(ctx context.Context, session, waiter string) (bool, error) {
@@ -112,7 +135,7 @@ func (m *mutation) WaiterCall(ctx context.Context, session, client, message stri
 }
 
 func (m *mutation) emitEvent(ctx context.Context, session string, event trapezza.Event) error {
-	s, err := m.trapezza.SessionByID(session)
+	s, err := m.trapezza.Session(session)
 	if err != nil {
 		return err
 	}

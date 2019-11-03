@@ -12,31 +12,32 @@ type Event interface {
 	Restaurant() string
 }
 
-type NewSessionEvent struct {
-	ID    string
-	Table string
+type NewTrapezzaSessionEvent struct {
+	Trapezza string
+	Table    string
 
 	restaurant string
 }
 
-func (e *NewSessionEvent) Type() EventType {
+func (e *NewTrapezzaSessionEvent) Type() EventType {
 	return NewSession
 }
 
-func (e *NewSessionEvent) Restaurant() string {
+func (e *NewTrapezzaSessionEvent) Restaurant() string {
 	return e.restaurant
 }
 
-type EndSessionEvent struct {
-	Table string
+type EndTrapezzaSessionEvent struct {
+	Trapezza string
+	Table    string
 
 	restaurant string
 }
 
-func (e *EndSessionEvent) Type() EventType {
+func (e *EndTrapezzaSessionEvent) Type() EventType {
 	return EndSession
 }
 
-func (e *EndSessionEvent) Restaurant() string {
+func (e *EndTrapezzaSessionEvent) Restaurant() string {
 	return e.restaurant
 }

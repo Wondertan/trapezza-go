@@ -1,32 +1,35 @@
 type Query {
-    session(rest: String!, table: String!): Trapezza
-    sessionById(id: String!): Trapezza
+    trapezzaSession(rest: String!, table: String!): TrapezzaSession
+    trapezzaSessionByID(id: String!): TrapezzaSession
 }
 
 type Mutation {
-    new(rest: String!, table: String!): String!
-    changeWaiter(session: String!, waiter: String!): Boolean!
-    changePayer(session: String!, payer: String!): Boolean!
-    newGroup(session: String!, payer: String!): Boolean!
-    joinGroup(session: String!, client: String!, payer: String!): Boolean!
-    addItems(session: String!, client: String!, items: [String!]): Boolean!
-    removeItem(session: String!, client: String!, item: String!): Boolean!
-    splitItem(session: String!, who: String!, with: String!, item: String!): Boolean!
-    checkoutPayer(session: String!, payer: String!): Boolean!
-    checkoutClient(session: String!, client: String!): Boolean!
-    waiterCall(session: String!, client: String!, message: String!): Boolean!
+    newTrapezzaSession(rest: String!, table: String!): String!
+    endTrapezzaSession(rest: String!, table: String!): Boolean!
+    endTrapezzaSessionByID(id: String!): Boolean!
+    changeWaiter(trapezza: String!, waiter: String!): Boolean!
+    changePayer(trapezza: String!, payer: String!): Boolean!
+    newGroup(trapezza: String!, payer: String!): Boolean!
+    joinGroup(trapezza: String!, client: String!, payer: String!): Boolean!
+    addItems(trapezza: String!, client: String!, items: [String!]): Boolean!
+    removeItem(trapezza: String!, client: String!, item: String!): Boolean!
+    splitItem(trapezza: String!, who: String!, with: String!, item: String!): Boolean!
+    checkoutPayer(trapezza: String!, payer: String!): Boolean!
+    checkoutClient(trapezza: String!, client: String!): Boolean!
+    waiterCall(trapezza: String!, client: String!, message: String!): Boolean!
 }
 
 type Subscription {
-    updates(id: String!): Update
+    trapezzaSessionUpdates(id: String!): TrapezzaSessionUpdate
+    restaurantEvents(id: String!): RestaurantEvents
 }
 
-type Update {
-    state: Trapezza
-    event: Event
+type TrapezzaSessionUpdate {
+    state: TrapezzaSession
+    event: TrapezzaSessionEvents
 }
 
-type Trapezza {
+type TrapezzaSession {
     id: String!
     waiter: String!
     started: Time!
@@ -40,12 +43,6 @@ type Group {
     total: Float!
 }
 
-type GroupItem {
-    id: String!
-    price: Float!
-    groups: [Group]
-}
-
 type Client {
     id: String!
     items: [GroupItem]
@@ -53,9 +50,10 @@ type Client {
     checkedOut: Boolean!
 }
 
-type Call {
-    time: Time!
-    message: String!
+type GroupItem {
+    id: String!
+    price: Float!
+    groups: [Group]
 }
 
 type Item {
@@ -63,88 +61,68 @@ type Item {
     price: Float!
 }
 
-enum EventType {
-    ChangeWaiter
-    ChangePayer
-    NewGroup
-    JoinGroup
-    AddItems
-    RemoveItem
-    SplitItem
-    CheckoutClient
-    CheckoutPayer
-    WaiterCall
+type Call {
+    time: Time!
+    message: String!
 }
 
-interface Event {
-    type: EventType!
+type NewTrapezzaSession {
+    table: String!
     trapezza: String!
 }
 
-type ChangeWaiterEvent implements Event{
-    type: EventType!
+type EndTrapezzaSession {
+    table: String!
     trapezza: String!
+}
+
+type ChangeWaiter {
     waiter: String!
 }
 
-type ChangePayerEvent implements Event{
-    type: EventType!
-    trapezza: String!
+type ChangePayer {
     payer: String!
 }
 
-type NewGroupEvent implements Event{
-    type: EventType!
-    trapezza: String!
+type NewGroup {
     payer: String!
 }
 
-type AddItemsEvent implements Event{
-    type: EventType!
-    trapezza: String!
+type AddItems {
     client: String!
     items: [Item]
 }
 
-type RemoveItemEvent implements Event{
-    type: EventType!
-    trapezza: String!
+type RemoveItem {
     client: String!
     item: String!
 }
 
-type SplitItemEvent implements Event {
-    type: EventType!
-    trapezza: String!
+type SplitItem {
     who: String!
     with: String!
     item: String!
 }
 
-type JoinGroupEvent implements Event{
-    type: EventType!
-    trapezza: String!
+type JoinGroup {
     payer: String!
     client: String!
 }
 
-type CheckoutClientEvent implements Event {
-    type: EventType!
-    trapezza: String!
+type CheckoutClient {
     client: String!
 }
 
-type CheckoutPayerEvent implements Event {
-    type: EventType!
-    trapezza: String!
+type CheckoutPayer {
     payer: String!
 }
 
-type WaiterCallEvent implements Event {
-    type: EventType!
-    trapezza: String!
+type WaiterCall {
     client: String!
     message: String!
 }
+
+union TrapezzaSessionEvents = WaiterCall | CheckoutPayer | CheckoutClient | JoinGroup | SplitItem | RemoveItem | AddItems | NewGroup | ChangePayer | ChangeWaiter
+union RestaurantEvents = NewTrapezzaSession | EndTrapezzaSession
 
 scalar Time

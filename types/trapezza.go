@@ -44,7 +44,7 @@ func NewTrapezza(id string) *Trapezza {
 		Id:       id,
 		Started:  time.Now(),
 		LastCall: time.Now(),
-		groups:   make(Groups, GroupsLimit),
+		groups:   make(Groups, 0, GroupsLimit),
 	}
 }
 
