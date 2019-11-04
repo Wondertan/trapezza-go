@@ -99,7 +99,7 @@ func (g *GroupOrder) AddCall(order *ClientOrder, time time.Time, message string)
 
 func (g *GroupOrder) AnswerCall(order *ClientOrder, waiter string) error {
 	call := order.lastCall()
-	if waiter != "" {
+	if call.Waiter != "" {
 		return ErrAnswered
 	}
 
