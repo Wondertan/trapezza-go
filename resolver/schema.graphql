@@ -17,7 +17,7 @@ type Mutation {
     checkoutPayer(trapezza: String!, payer: String!): Boolean!
     checkoutClient(trapezza: String!, client: String!): Boolean!
     waiterCall(trapezza: String!, client: String!, message: String!): Boolean!
-    waiterCallAnswer(trapezza: String!, waiter: String!): Boolean!
+    waiterCallAnswer(trapezza: String!, client: String!, waiter: String!): Boolean!
 }
 
 type Subscription {

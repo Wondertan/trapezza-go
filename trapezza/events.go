@@ -220,6 +220,7 @@ func (e *WaiterCallEvent) setID(id string) {
 }
 
 type WaiterCallAnswerEvent struct {
+	Client string
 	Waiter string
 
 	session string

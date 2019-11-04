@@ -90,8 +90,21 @@ func (g *GroupOrder) CheckoutPayer(order *ClientOrder) error {
 	return nil
 }
 
-func (g *GroupOrder) AddCall(order *ClientOrder, call *Call) {
-	order.addCall(call)
+func (g *GroupOrder) AddCall(order *ClientOrder, time time.Time, message string) {
+	order.addCall(&Call{
+		Time:    time,
+		Message: message,
+	})
+}
+
+func (g *GroupOrder) AnswerCall(order *ClientOrder, waiter string) error {
+	call := order.lastCall()
+	if waiter != "" {
+		return ErrAnswered
+	}
+
+	call.Waiter = waiter
+	return nil
 }
 
 func (g *GroupOrder) ChangePayer(order *ClientOrder) error {
@@ -120,6 +133,7 @@ func (g *GroupOrder) order(id string) (*ClientOrder, error) {
 type Call struct {
 	Time    time.Time
 	Message string
+	Waiter  string
 }
 
 type ClientOrder struct {
@@ -156,6 +170,10 @@ func (c *ClientOrder) item(id string) (*OrderItem, error) {
 
 func (c *ClientOrder) addCall(call *Call) {
 	c.Calls = append(c.Calls, call)
+}
+
+func (c *ClientOrder) lastCall() *Call {
+	return c.Calls[len(c.Calls)-1]
 }
 
 type OrderItem struct {

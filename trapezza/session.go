@@ -130,6 +130,9 @@ func (s *state) Handle(e session.Event) error {
 	case WaiterCall:
 		event := e.(*WaiterCallEvent)
 		return s.trapezza.WaiterCall(event.Client, event.Message)
+	case WaiteCallAnswer:
+		event := e.(*WaiterCallAnswerEvent)
+		return s.trapezza.WaiterCallAnswer(event.Client, event.Waiter)
 	default:
 		return ErrWrongEvent
 	}

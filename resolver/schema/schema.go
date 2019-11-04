@@ -116,7 +116,7 @@ type ComplexityRoot struct {
 		RemoveItem             func(childComplexity int, trapezza string, client string, item string) int
 		SplitItem              func(childComplexity int, trapezza string, who string, with string, item string) int
 		WaiterCall             func(childComplexity int, trapezza string, client string, message string) int
-		WaiterCallAnswer       func(childComplexity int, trapezza string, waiter string) int
+		WaiterCallAnswer       func(childComplexity int, trapezza string, client string, waiter string) int
 	}
 
 	NewGroupOrder struct {
@@ -192,7 +192,7 @@ type MutationResolver interface {
 	CheckoutPayer(ctx context.Context, trapezza string, payer string) (bool, error)
 	CheckoutClient(ctx context.Context, trapezza string, client string) (bool, error)
 	WaiterCall(ctx context.Context, trapezza string, client string, message string) (bool, error)
-	WaiterCallAnswer(ctx context.Context, trapezza string, waiter string) (bool, error)
+	WaiterCallAnswer(ctx context.Context, trapezza string, client string, waiter string) (bool, error)
 }
 type QueryResolver interface {
 	TrapezzaSession(ctx context.Context, rest string, table string) (*types.Trapezza, error)
@@ -531,7 +531,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.WaiterCallAnswer(childComplexity, args["trapezza"].(string), args["waiter"].(string)), true
+		return e.complexity.Mutation.WaiterCallAnswer(childComplexity, args["trapezza"].(string), args["client"].(string), args["waiter"].(string)), true
 
 	case "NewGroupOrder.payer":
 		if e.complexity.NewGroupOrder.Payer == nil {
@@ -838,7 +838,7 @@ type Mutation {
     checkoutPayer(trapezza: String!, payer: String!): Boolean!
     checkoutClient(trapezza: String!, client: String!): Boolean!
     waiterCall(trapezza: String!, client: String!, message: String!): Boolean!
-    waiterCallAnswer(trapezza: String!, waiter: String!): Boolean!
+    waiterCallAnswer(trapezza: String!, client: String!, waiter: String!): Boolean!
 }
 
 type Subscription {
@@ -1268,13 +1268,21 @@ func (ec *executionContext) field_Mutation_waiterCallAnswer_args(ctx context.Con
 	}
 	args["trapezza"] = arg0
 	var arg1 string
-	if tmp, ok := rawArgs["waiter"]; ok {
+	if tmp, ok := rawArgs["client"]; ok {
 		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["waiter"] = arg1
+	args["client"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["waiter"]; ok {
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["waiter"] = arg2
 	return args, nil
 }
 
@@ -2785,7 +2793,7 @@ func (ec *executionContext) _Mutation_waiterCallAnswer(ctx context.Context, fiel
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().WaiterCallAnswer(rctx, args["trapezza"].(string), args["waiter"].(string))
+		return ec.resolvers.Mutation().WaiterCallAnswer(rctx, args["trapezza"].(string), args["client"].(string), args["waiter"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

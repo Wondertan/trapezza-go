@@ -20,9 +20,10 @@ var (
 	ErrGroupsLimit   = fmt.Errorf("trapezza: groups limit exceded")
 	ErrClientsLimit  = fmt.Errorf("trapezza: clients per group limit exceded")
 	ErrItemsLimit    = fmt.Errorf("trapezza: items per client limit exceded")
-	ErrCallTimeout   = fmt.Errorf("trapezza: waiter call timeout")
+	ErrCallTimeout   = fmt.Errorf("trapezza: waiter call timeout has not passed")
 	ErrPayerCheckout = fmt.Errorf("trapezza: payer can't checkput himself")
 	ErrCheckedOut    = fmt.Errorf("trapezza: client already checked out")
+	ErrAnswered      = fmt.Errorf("trapezza: call already answered")
 )
 
 type Item struct {
@@ -166,13 +167,19 @@ func (t *Trapezza) WaiterCall(client, message string) error {
 		return err
 	}
 
-	g.AddCall(c, &Call{
-		Time:    call,
-		Message: message,
-	})
+	g.AddCall(c, call, message)
 
 	t.LastCall = call
 	return nil
+}
+
+func (t *Trapezza) WaiterCallAnswer(client, waiter string) error {
+	c, g, err := t.groups.OrderGroup(client)
+	if err != nil {
+		return err
+	}
+
+	return g.AnswerCall(c, waiter)
 }
 
 type Groups []*GroupOrder

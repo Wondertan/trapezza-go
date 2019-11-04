@@ -134,8 +134,8 @@ func (m *mutation) WaiterCall(ctx context.Context, session, client, message stri
 	return true, nil
 }
 
-func (m *mutation) WaiterCallAnswer(ctx context.Context, session, waiter string) (bool, error) {
-	err := m.emitEvent(ctx, session, &trapezza.WaiterCallAnswerEvent{Waiter: waiter})
+func (m *mutation) WaiterCallAnswer(ctx context.Context, session, client, waiter string) (bool, error) {
+	err := m.emitEvent(ctx, session, &trapezza.WaiterCallAnswerEvent{Client: client, Waiter: waiter})
 	if err != nil {
 		return false, err
 	}
