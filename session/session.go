@@ -4,26 +4,60 @@ import (
 	"context"
 )
 
-type ID string
+type EventType string
 
-// TODO Context handling
+type Event interface {
+	Type() EventType
+}
+
+type State interface {
+	Handle(Event) error
+}
+
+type Update struct {
+	State
+	Event
+}
+
 type Session struct {
-	state *State
+	state State
 
-	eventReqs chan *eventReq
-	stateReqs chan chan *State
-	subReqs   chan chan Event
-	subs      []chan Event
+	updateSub       chan *updateSubReq
+	updateSubCancel chan uint64
+	updateSubs      map[uint64]chan *Update
+	eventReqs       chan *eventReq
+	stateReqs       chan chan State
+
+	n uint64
 
 	ctx    context.Context
 	cancel context.CancelFunc
 }
 
-func (ses *Session) ID() ID {
-	return ses.state.Id
+func NewSession(ctx context.Context, state State) *Session {
+	ctx, cancel := context.WithCancel(ctx)
+	ses := &Session{
+		state:           state,
+		updateSub:       make(chan *updateSubReq),
+		updateSubCancel: make(chan uint64),
+		updateSubs:      make(map[uint64]chan *Update),
+		eventReqs:       make(chan *eventReq),
+		stateReqs:       make(chan chan State),
+		ctx:             ctx,
+		cancel:          cancel,
+	}
+
+	go ses.handle()
+	return ses
 }
 
-func (ses *Session) Event(e Event) (chan error, error) {
+func (ses *Session) EmitEvent(e Event) (<-chan error, error) {
+	select {
+	case <-ses.ctx.Done():
+		return nil, ses.ctx.Err()
+	default:
+	}
+
 	resp := make(chan error, 1)
 	select {
 	case ses.eventReqs <- &eventReq{event: e, resp: resp}:
@@ -33,19 +67,32 @@ func (ses *Session) Event(e Event) (chan error, error) {
 	}
 }
 
-// TODO Subscription closing
-func (ses *Session) SubscribeEvents() (<-chan Event, error) {
-	sub := make(chan Event, 1)
+func (ses *Session) SubscribeUpdates(ctx context.Context) (<-chan *Update, error) {
 	select {
-	case ses.subReqs <- sub:
-		return sub, nil
+	case <-ses.ctx.Done():
+		return nil, ses.ctx.Err()
+	default:
+	}
+
+	ch := make(chan *Update, 1)
+	select {
+	case ses.updateSub <- &updateSubReq{ctx: ctx, sub: ch}:
+		return ch, nil
+	case <-ctx.Done():
+		return nil, ses.ctx.Err()
 	case <-ses.ctx.Done():
 		return nil, ses.ctx.Err()
 	}
 }
 
-func (ses *Session) State() (chan *State, error) {
-	resp := make(chan *State, 1)
+func (ses *Session) State() (<-chan State, error) {
+	select {
+	case <-ses.ctx.Done():
+		return nil, ses.ctx.Err()
+	default:
+	}
+
+	resp := make(chan State, 1)
 	select {
 	case ses.stateReqs <- resp:
 		return resp, nil
@@ -55,56 +102,58 @@ func (ses *Session) State() (chan *State, error) {
 }
 
 func (ses *Session) Stop() {
-	// TODO Be more graceful
 	ses.cancel()
 }
 
-func newSession(ctx context.Context, id ID) *Session {
-	ctx, cancel := context.WithCancel(ctx)
-	ses := &Session{
-		state: &State{
-			Id: id,
-		},
-		eventReqs: make(chan *eventReq),
-		stateReqs: make(chan chan *State),
-		subReqs:   make(chan chan Event),
-		subs:      make([]chan Event, 0),
-		ctx:       ctx,
-		cancel:    cancel,
+func (ses *Session) handleClose(ctx context.Context, id uint64) {
+	select {
+	case <-ctx.Done():
+		ses.updateSubCancel <- id
+	case <-ses.ctx.Done():
 	}
-
-	go ses.handle()
-	return ses
 }
 
 func (ses *Session) handle() {
-	// TODO Cleaning on defer?
 	for {
 		select {
-		case req := <-ses.stateReqs:
-			req <- ses.state
+		case req := <-ses.updateSub:
+			go ses.handleClose(req.ctx, ses.n)
+			ses.updateSubs[ses.n] = req.sub
+			ses.n++
+		case id := <-ses.updateSubCancel:
+			close(ses.updateSubs[id])
+			delete(ses.updateSubs, id)
 		case req := <-ses.eventReqs:
-			err := req.event.Handle(ses.state)
+			err := ses.state.Handle(req.event)
 			if err != nil {
 				req.resp <- err
 				continue
 			}
 			req.resp <- nil
 
-			for _, sub := range ses.subs {
+			for _, sub := range ses.updateSubs {
 				select {
-				case sub <- req.event:
+				case sub <- &Update{
+					State: ses.state,
+					Event: req.event,
+				}:
 				default:
 					// subscriber is not listening
 					// TODO Log
 				}
 			}
-		case sub := <-ses.subReqs:
-			ses.subs = append(ses.subs, sub)
+		case req := <-ses.stateReqs:
+			req <- ses.state
+			close(req)
 		case <-ses.ctx.Done():
 			return
 		}
 	}
+}
+
+type updateSubReq struct {
+	ctx context.Context
+	sub chan *Update
 }
 
 type eventReq struct {

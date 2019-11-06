@@ -3,120 +3,114 @@ package session
 import (
 	"context"
 	"errors"
-	"reflect"
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestSessionEvent(t *testing.T) {
-	ctx := context.Background()
-	id := ID("test")
+func TestSession(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	ses := newSession(ctx, id)
-	defer ses.Stop()
-
-	if ses.ID() != id {
-		t.Fatal("ids are not equal")
+	state := &fakeState{
+		data: "test",
 	}
 
-	in := &State{
-		Id: id,
-		Waiter: "test",
-		Table: "test",
-		Orders: []*Order{
-			{
-				Client: "testclient",
-				Items: []string{
-					"chicken",
-					"potato",
-				},
-			},
-		},
-	}
+	ses := NewSession(ctx, state)
 
 	t.Run("Error", func(t *testing.T) {
-		resp, err := ses.Event(&testEvent{
-			State: in,
-			err:   testError,
-		})
-		if err != nil {
-			t.Fatal("unexpected error", err)
-		}
+		resp, err := ses.EmitEvent(&fakeEvent{err: fakeError})
+		require.Nil(t, err, "unexpected error")
 
 		err = <-resp
-		if err != testError {
-			t.Fatal("wrong error")
-		}
-
-		ch, err := ses.State()
-		if err != nil {
-			t.Fatal("unexpected error", err)
-		}
-
-		out := <-ch
-		if reflect.DeepEqual(in, out) {
-			t.Fatal("should not be equal")
-		}
+		assert.Equal(t, fakeError, err, "wrong error")
 	})
 
 	t.Run("Success", func(t *testing.T) {
-		resp, err := ses.Event(&testEvent{State: in})
-		if err != nil {
-			t.Fatal("unexpected error", err)
-		}
+		in := "success"
+
+		resp, err := ses.EmitEvent(&fakeEvent{data: in})
+		require.Nil(t, err, "unexpected error")
 
 		err = <-resp
-		if err != nil {
-			t.Fatal("unexpected error", err)
-		}
+		require.Nil(t, err, "unexpected error")
 
 		ch, err := ses.State()
-		if err != nil {
-			t.Fatal("unexpected error", err)
-		}
+		require.Nil(t, err, "unexpected error")
 
 		out := <-ch
-		if !reflect.DeepEqual(in, out) {
-			t.Fatal("states are not equal")
-		}
+		assert.Equal(t, state, out, "states are not equal")
 	})
 
-	t.Run("Sub", func(t *testing.T) {
-		event := &testEvent{State: in}
+	t.Run("Subscriptions", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(ctx)
 
-		sub, err := ses.SubscribeEvents()
-		if err != nil {
-			t.Fatal("unexpected error", err)
-		}
+		in := &fakeEvent{data: "subscriptions"}
 
-		resp, err := ses.Event(event)
-		if err != nil {
-			t.Fatal("unexpected error", err)
-		}
+		sub1, err := ses.SubscribeUpdates(ctx)
+		require.Nil(t, err, "unexpected error")
+
+		sub2, err := ses.SubscribeUpdates(context.Background())
+		require.Nil(t, err, "unexpected error")
+
+		resp, err := ses.EmitEvent(in)
+		require.Nil(t, err, "unexpected error")
 
 		err = <-resp
-		if err != nil {
-			t.Fatal("unexpected error", err)
-		}
+		require.Nil(t, err, "unexpected error")
 
-		e := <-sub
-		if !reflect.DeepEqual(e, event) {
-			t.Fatal("events should be equal")
-		}
+		out := <-sub1
+		assert.Equal(t, in, out.Event, "events should be equal")
+
+		out = <-sub2
+		assert.Equal(t, in, out.Event, "events should be equal")
+
+		cancel()                          // close one
+		time.Sleep(time.Millisecond * 10) // wait till cancel
+
+		resp, err = ses.EmitEvent(in)
+		require.Nil(t, err, "unexpected error")
+
+		err = <-resp
+		require.Nil(t, err, "unexpected error")
+
+		out, ok := <-sub1
+		assert.False(t, ok)
+		assert.Nil(t, out, "should be nil")
+
+		out = <-sub2
+		assert.Equal(t, in, out.Event, "events should be equal")
 	})
 }
 
-var testError = errors.New("test")
+var fakeError = errors.New("fake")
 
-type testEvent struct {
-	*State
-	err error
+type fakeState struct {
+	data string
 }
 
-func (e *testEvent) Handle(s *State) error {
-	if e.err != nil {
-		return e.err
+func (s *fakeState) ID() string {
+	return "fake"
+}
+
+func (s *fakeState) Handle(e Event) error {
+	event := e.(*fakeEvent)
+	if event.err != nil {
+		return event.err
+	} else {
+		s.data = event.data
 	}
 
-	*s = *e.State
 	return nil
+}
+
+type fakeEvent struct {
+	data string
+	err  error
+}
+
+func (e *fakeEvent) Type() EventType {
+	return "fake"
 }
